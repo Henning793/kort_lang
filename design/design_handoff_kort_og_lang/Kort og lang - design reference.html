@@ -1,0 +1,486 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#c67139">
+  <link rel="stylesheet" href="_ds/organic-6c9c5a6f-5998-47f9-b8c7-2bb60aba951d/styles.css">
+  <script src="_ds/organic-6c9c5a6f-5998-47f9-b8c7-2bb60aba951d/_ds_bundle.js"></script>
+  <style>
+    html,body{margin:0;background:var(--color-bg);-webkit-tap-highlight-color:transparent;}
+    @keyframes kolFloat{0%,100%{transform:translateY(0) rotate(0deg);}50%{transform:translateY(-12px) rotate(6deg);}}
+    @keyframes kolPop{0%{transform:scale(.85);opacity:0;}100%{transform:scale(1);opacity:1;}}
+    button{font-family:var(--font-body);}
+  </style>
+</helmet>
+
+<div style="min-height:100vh;background:var(--color-bg);color:var(--color-text);display:flex;flex-direction:column;">
+  <div style="max-width:480px;width:100%;margin:0 auto;flex:1;display:flex;flex-direction:column;min-height:100vh;">
+
+    <!-- ============ SETUP ============ -->
+    <sc-if value="{{ isSetup }}" hint-placeholder-val="{{ true }}">
+      <div style="padding:28px 20px 40px;display:flex;flex-direction:column;gap:24px;">
+        <div style="display:flex;align-items:center;gap:10px;">
+          <svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="#c67139" stroke-width="2.75" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="6" width="14" height="14" rx="3"></rect><path d="M7 6V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2h-2"></path></svg>
+          <h1 style="margin:0;font-size:28px;">Kort og lang</h1>
+        </div>
+        <p style="margin:0;opacity:.75;font-size:14px;">Legg til spillerne som skal være med. Du kan endre navn, men ikke antall spillere etter at spillet er startet.</p>
+
+        <div style="display:flex;flex-direction:column;gap:10px;">
+          <sc-for list="{{ players }}" as="p" hint-placeholder-count="2">
+            <div style="display:flex;align-items:center;gap:10px;">
+              <div style="width:30px;height:30px;flex:none;border-radius:50%;background:var(--color-accent-2-100);color:var(--color-accent-2-800);display:flex;align-items:center;justify-content:center;font-family:var(--font-heading);font-size:13px;">{{ p.orderNum }}</div>
+              <input class="input" type="text" placeholder="{{ p.placeholder }}" value="{{ p.name }}" onChange="{{ p.onNameChange }}" style="flex:1;" />
+              <button class="btn btn-icon btn-secondary" onClick="{{ p.onRemove }}" disabled="{{ !canRemove }}" aria-label="Fjern spiller">
+                <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.75" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"></path><path d="M6 6l12 12"></path></svg>
+              </button>
+            </div>
+          </sc-for>
+        </div>
+
+        <button class="btn btn-secondary btn-block" onClick="{{ addPlayer }}" disabled="{{ !canAddPlayer }}" style="border-style:dashed;">
+          <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.75" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12h14"></path></svg>
+          Legg til spiller
+        </button>
+
+        <div style="margin-top:8px;">
+          <button class="btn btn-primary btn-block" onClick="{{ startGame }}" style="font-size:17px;padding:14px;">Start spill</button>
+        </div>
+
+        <div style="margin-top:8px;padding:14px 16px;background:var(--color-surface);border-radius:var(--radius-lg);font-size:12.5px;opacity:.8;">
+          7 runder: kort+kort · kort+lang · lang+lang · kort+kort+kort · kort+kort+lang · kort+lang+lang · lang+lang+lang. Færrest poeng vinner.
+        </div>
+      </div>
+    </sc-if>
+
+    <!-- ============ PLAY ============ -->
+    <sc-if value="{{ isPlay }}" hint-placeholder-val="{{ false }}">
+      <div style="display:flex;flex-direction:column;flex:1;">
+        <div class="nav" style="padding:16px 20px 8px;">
+          <div class="nav-brand" style="display:flex;align-items:center;gap:8px;font-size:17px;">
+            <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="#c67139" stroke-width="2.75" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="6" width="14" height="14" rx="3"></rect><path d="M7 6V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2h-2"></path></svg>
+            Kort og lang
+          </div>
+          <button class="btn btn-ghost" onClick="{{ requestNewGame }}">Nytt spill</button>
+        </div>
+
+        <div style="padding:4px 20px 14px;">
+          <h2 style="margin:0 0 10px;font-size:23px;">Runde {{ roundNumber }} <span style="font-family:var(--font-body);font-size:14px;opacity:.5;">av 7</span></h2>
+          <div style="display:flex;gap:6px;margin-bottom:12px;">
+            <sc-for list="{{ dots }}" as="dot" hint-placeholder-count="7">
+              <div style="flex:1;height:6px;border-radius:99px;background:{{ dot.bg }};"></div>
+            </sc-for>
+          </div>
+          <div style="display:flex;align-items:center;gap:8px;background:var(--color-surface);padding:12px 14px;border-radius:var(--radius-lg);">
+            <div style="display:flex;gap:4px;">
+              <sc-for list="{{ roundDef.combo }}" as="c" hint-placeholder-count="2">
+                <div style="width:18px;height:{{ c.h }}px;border-radius:4px;background:var(--color-accent-300);border:1.5px solid var(--color-accent-700);align-self:flex-end;"></div>
+              </sc-for>
+            </div>
+            <div style="font-family:var(--font-heading);font-size:16px;">{{ roundDef.label }}</div>
+          </div>
+        </div>
+
+        <div class="seg" style="margin:0 20px 16px;align-self:flex-start;">
+          <label class="seg-opt"><input type="radio" name="tab" checked="{{ tabIsPoeng }}" onChange="{{ setTabPoeng }}" />Poeng</label>
+          <label class="seg-opt"><input type="radio" name="tab" checked="{{ tabIsStilling }}" onChange="{{ setTabStilling }}" />Stilling</label>
+        </div>
+
+        <!-- Poeng tab -->
+        <sc-if value="{{ tabIsPoeng }}" hint-placeholder-val="{{ true }}">
+          <div style="padding:0 20px 28px;display:flex;flex-direction:column;gap:16px;">
+            <div style="display:flex;flex-direction:column;gap:8px;">
+              <sc-for list="{{ entryRows }}" as="row" hint-placeholder-count="4">
+                <div style="display:flex;align-items:center;justify-content:space-between;padding:10px 14px;border-radius:var(--radius-lg);background:var(--color-surface);">
+                  <span style="position:relative;font-family:var(--font-heading);font-size:15px;display:inline-block;">
+                    {{ row.name }}
+                    <sc-if value="{{ row.isDealer }}" hint-placeholder-val="{{ false }}">
+                      <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="#c67139" stroke-width="2.75" stroke-linecap="round" stroke-linejoin="round" style="position:absolute;top:-9px;right:-9px;transform:rotate(30deg);"><rect x="3" y="6" width="14" height="14" rx="3"></rect><path d="M7 6V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2h-2"></path></svg>
+                    </sc-if>
+                  </span>
+                  <input class="input" type="text" inputmode="numeric" placeholder="0" value="{{ row.value }}" onChange="{{ row.onChange }}" style="width:68px;text-align:center;padding:9px 6px;font-size:16px;font-weight:700;" />
+                </div>
+              </sc-for>
+            </div>
+
+            <button class="btn btn-primary btn-block" onClick="{{ saveRound }}" style="font-size:16px;padding:14px;">{{ finishLabel }}</button>
+          </div>
+        </sc-if>
+
+        <!-- Stilling tab -->
+        <sc-if value="{{ tabIsStilling }}" hint-placeholder-val="{{ false }}">
+          <div style="padding:0 20px 28px;display:flex;flex-direction:column;gap:16px;">
+            <table class="table">
+              <thead><tr><th>Plass</th><th>Spiller</th><th style="text-align:right;">Poeng</th></tr></thead>
+              <tbody>
+                <sc-for list="{{ standings }}" as="s" hint-placeholder-count="4">
+                  <tr onClick="{{ s.onClick }}" style="cursor:pointer;">
+                    <td style="font-family:var(--font-heading);">{{ s.rankLabel }}</td>
+                    <td>
+                      <span style="position:relative;display:inline-block;">
+                        {{ s.name }}
+                        <sc-if value="{{ s.isDealer }}" hint-placeholder-val="{{ false }}">
+                          <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="#c67139" stroke-width="2.75" stroke-linecap="round" stroke-linejoin="round" style="position:absolute;top:-8px;right:-8px;transform:rotate(30deg);"><rect x="3" y="6" width="14" height="14" rx="3"></rect><path d="M7 6V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2h-2"></path></svg>
+                        </sc-if>
+                      </span>
+                    </td>
+                    <td style="text-align:right;font-weight:700;">{{ s.total }}</td>
+                  </tr>
+                </sc-for>
+              </tbody>
+            </table>
+
+            <sc-if value="{{ hasExpanded }}" hint-placeholder-val="{{ false }}">
+              <div style="background:var(--color-surface);border-radius:var(--radius-lg);padding:16px;display:flex;flex-direction:column;gap:8px;">
+                <div class="card-title">{{ expandedName }} — poeng per runde</div>
+                <sc-for list="{{ expandedRounds }}" as="r" hint-placeholder-count="7">
+                  <div onClick="{{ r.onClick }}" style="display:flex;justify-content:space-between;align-items:center;padding:8px 4px;border-bottom:1px solid var(--color-divider);cursor:{{ r.cursor }};">
+                    <span style="font-size:13px;opacity:.75;">{{ r.label }}</span>
+                    <span style="display:flex;align-items:center;gap:6px;font-weight:700;">{{ r.displayValue }}
+                      <sc-if value="{{ r.played }}" hint-placeholder-val="{{ false }}">
+                        <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.75" stroke-linecap="round" stroke-linejoin="round" style="opacity:.5;"><path d="M12 20h9"></path><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z"></path></svg>
+                      </sc-if>
+                    </span>
+                  </div>
+                </sc-for>
+              </div>
+            </sc-if>
+          </div>
+        </sc-if>
+      </div>
+    </sc-if>
+
+    <!-- ============ RESULT ============ -->
+    <sc-if value="{{ isResult }}" hint-placeholder-val="{{ false }}">
+      <div style="display:flex;flex-direction:column;flex:1;padding-bottom:28px;">
+        <div class="nav" style="padding:16px 20px 0;">
+          <div class="nav-brand" style="display:flex;align-items:center;gap:8px;font-size:17px;">
+            <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="#c67139" stroke-width="2.75" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="6" width="14" height="14" rx="3"></rect><path d="M7 6V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2h-2"></path></svg>
+            Kort og lang
+          </div>
+        </div>
+
+        <div style="position:relative;margin:20px 20px 8px;padding:36px 24px;border-radius:var(--radius-lg);background:var(--color-surface);text-align:center;overflow:visible;animation:kolPop .5s ease;">
+          <sc-if value="{{ showConfetti }}" hint-placeholder-val="{{ false }}">
+            <div style="position:absolute;top:-8px;left:14px;width:16px;height:16px;border-radius:50%;background:var(--color-accent-400);animation:kolFloat 3.2s ease-in-out infinite;"></div>
+            <div style="position:absolute;top:6px;right:22px;width:12px;height:12px;border-radius:50%;background:var(--color-accent-2-400);animation:kolFloat 2.6s ease-in-out infinite .3s;"></div>
+            <div style="position:absolute;bottom:10px;left:30px;width:10px;height:10px;border-radius:50%;background:var(--color-accent-2-300);animation:kolFloat 3.6s ease-in-out infinite .6s;"></div>
+            <div style="position:absolute;top:-12px;right:60px;width:9px;height:9px;border-radius:50%;background:var(--color-accent-300);animation:kolFloat 2.9s ease-in-out infinite .15s;"></div>
+          </sc-if>
+          <svg viewBox="0 0 24 24" width="40" height="40" fill="none" stroke="#c67139" stroke-width="2.75" stroke-linecap="round" stroke-linejoin="round" style="margin:0 auto 8px;"><circle cx="12" cy="8" r="6"></circle><path d="M9 13.5 7 22l5-3 5 3-2-8.5"></path></svg>
+          <div class="card-kicker" style="margin-bottom:4px;">Vinner</div>
+          <h1 style="margin:0 0 6px;font-size:30px;">{{ winnerNames }}</h1>
+          <div style="opacity:.7;font-size:14px;">{{ winnerTotalLabel }}</div>
+        </div>
+
+        <div style="padding:8px 20px 0;">
+          <table class="table">
+            <thead><tr><th>Plass</th><th>Spiller</th><th style="text-align:right;">Poeng</th></tr></thead>
+            <tbody>
+              <sc-for list="{{ standings }}" as="s" hint-placeholder-count="4">
+                <tr>
+                  <td style="font-family:var(--font-heading);">{{ s.rankLabel }}</td>
+                  <td>{{ s.name }}</td>
+                  <td style="text-align:right;font-weight:700;">{{ s.total }}</td>
+                </tr>
+              </sc-for>
+            </tbody>
+          </table>
+        </div>
+
+        <div style="padding:24px 20px 0;margin-top:auto;">
+          <button class="btn btn-primary btn-block" onClick="{{ requestNewGame }}" style="font-size:16px;padding:14px;">Nytt spill</button>
+        </div>
+      </div>
+    </sc-if>
+
+    <!-- New game confirm dialog -->
+    <sc-if value="{{ confirmNewGame }}" hint-placeholder-val="{{ false }}">
+      <div class="dialog-backdrop">
+        <div class="dialog">
+          <div class="dialog-title">Start nytt spill?</div>
+          <div class="dialog-body">Dette nullstiller alle spillere og poeng. Du kan ikke angre dette.</div>
+          <div class="dialog-actions">
+            <button class="btn btn-secondary" onClick="{{ cancelNewGame }}">Avbryt</button>
+            <button class="btn btn-primary" onClick="{{ doNewGame }}">Start nytt</button>
+          </div>
+        </div>
+      </div>
+    </sc-if>
+
+    <!-- Edit score dialog -->
+    <sc-if value="{{ hasEditTarget }}" hint-placeholder-val="{{ false }}">
+      <div class="dialog-backdrop">
+        <div class="dialog">
+          <div class="dialog-title">Rediger runde {{ editRoundNumber }}</div>
+          <div class="dialog-body">{{ editPlayerName }}</div>
+          <div style="background:var(--color-bg);border-radius:var(--radius-md);padding:14px;text-align:center;font-family:var(--font-heading);font-size:30px;">{{ editPadDisplay }}</div>
+          <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;">
+            <sc-for list="{{ digits }}" as="d" hint-placeholder-count="9">
+              <button class="btn btn-secondary" onClick="{{ d.onClick }}" style="font-size:18px;padding:13px 0;">{{ d.n }}</button>
+            </sc-for>
+            <button class="btn btn-secondary" onClick="{{ toggleSign }}" disabled="{{ !allowNegative }}" style="font-size:18px;padding:13px 0;">±</button>
+            <button class="btn btn-secondary" onClick="{{ pressZero }}" style="font-size:18px;padding:13px 0;">0</button>
+            <button class="btn btn-secondary" onClick="{{ backspace }}" style="font-size:18px;padding:13px 0;">⌫</button>
+          </div>
+          <div class="dialog-actions">
+            <button class="btn btn-secondary" onClick="{{ cancelEdit }}">Avbryt</button>
+            <button class="btn btn-primary" onClick="{{ confirmEdit }}" disabled="{{ editPadEmpty }}">Bekreft</button>
+          </div>
+        </div>
+      </div>
+    </sc-if>
+
+  </div>
+</div>
+
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:390,&quot;height&quot;:844},&quot;allowNegativeScores&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:true,&quot;tsType&quot;:&quot;boolean&quot;},&quot;winnerEffect&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;default&quot;:&quot;confetti&quot;,&quot;options&quot;:[&quot;confetti&quot;,&quot;none&quot;],&quot;tsType&quot;:&quot;string&quot;}}">
+const ROUNDS = [
+  { label: 'kort + kort', combo: [26, 26] },
+  { label: 'kort + lang', combo: [26, 44] },
+  { label: 'lang + lang', combo: [44, 44] },
+  { label: 'kort + kort + kort', combo: [26, 26, 26] },
+  { label: 'kort + kort + lang', combo: [26, 26, 44] },
+  { label: 'kort + lang + lang', combo: [26, 44, 44] },
+  { label: 'lang + lang + lang', combo: [44, 44, 44] },
+];
+
+class Component extends DCLogic {
+  state = {
+    screen: 'setup',
+    players: [{ id: 1, name: '' }, { id: 2, name: '' }],
+    nextId: 3,
+    scores: { 1: Array(7).fill(null), 2: Array(7).fill(null) },
+    round: 0,
+    draft: { 1: '', 2: '' },
+    tab: 'poeng',
+    editTarget: null,
+    editPad: '',
+    confirmNewGame: false,
+    expandedPlayer: null,
+  };
+
+  buildDraft = (round, players, scores) => players.reduce((acc, p) => {
+    const v = scores[p.id] ? scores[p.id][round] : null;
+    acc[p.id] = v != null ? String(v) : '';
+    return acc;
+  }, {});
+
+  componentDidMount() {
+    try {
+      const raw = localStorage.getItem('kol_state');
+      if (raw) {
+        const saved = JSON.parse(raw);
+        this.setState(saved, () => {
+          if (this.state.screen === 'play') {
+            this.setState({ draft: this.buildDraft(this.state.round, this.state.players, this.state.scores) });
+          }
+        });
+      }
+    } catch (e) {}
+  }
+
+  componentDidUpdate() {
+    try {
+      const { screen, players, nextId, scores, round } = this.state;
+      localStorage.setItem('kol_state', JSON.stringify({ screen, players, nextId, scores, round }));
+    } catch (e) {}
+  }
+
+  addPlayer = () => {
+    this.setState(s => {
+      if (s.players.length >= 8) return {};
+      const id = s.nextId;
+      return { players: [...s.players, { id, name: '' }], nextId: id + 1, scores: { ...s.scores, [id]: Array(7).fill(null) } };
+    });
+  };
+  removePlayer = (id) => {
+    this.setState(s => {
+      if (s.players.length <= 2) return {};
+      const scores = { ...s.scores };
+      delete scores[id];
+      return { players: s.players.filter(p => p.id !== id), scores };
+    });
+  };
+  updateName = (id, val) => {
+    this.setState(s => ({ players: s.players.map(p => p.id === id ? { ...p, name: val } : p) }));
+  };
+  startGame = () => {
+    this.setState(s => {
+      const players = s.players.map((p, i) => ({ ...p, name: p.name.trim() ? p.name.trim() : 'Spiller ' + (i + 1) }));
+      return { players, screen: 'play', round: 0, tab: 'poeng', draft: this.buildDraft(0, players, s.scores) };
+    });
+  };
+
+  setTabPoeng = () => this.setState({ tab: 'poeng' });
+  setTabStilling = () => this.setState({ tab: 'stilling' });
+
+  updateDraft = (id, raw) => {
+    let v = raw.replace(/[^0-9-]/g, '');
+    const neg = v.startsWith('-') && this.props.allowNegativeScores !== false;
+    v = v.replace(/-/g, '');
+    if (v.length > 4) v = v.slice(0, 4);
+    v = (neg ? '-' : '') + v;
+    this.setState(s => ({ draft: { ...s.draft, [id]: v } }));
+  };
+
+  saveRound = () => {
+    const { players, scores, round, draft } = this.state;
+    const newScores = { ...scores };
+    players.forEach(p => {
+      const raw = draft[p.id];
+      const val = (raw === undefined || raw === '' || raw === '-') ? 0 : parseInt(raw, 10);
+      newScores[p.id] = scores[p.id].map((v, i) => i === round ? val : v);
+    });
+    if (round < 6) {
+      const nextRound = round + 1;
+      this.setState({ scores: newScores, round: nextRound, draft: this.buildDraft(nextRound, players, newScores) });
+    } else {
+      this.setState({ scores: newScores, screen: 'result' });
+    }
+  };
+
+  openEdit = (playerId, round) => {
+    const existing = this.state.scores[playerId][round];
+    this.setState({ editTarget: { playerId, round }, editPad: existing != null ? String(existing) : '' });
+  };
+  confirmEdit = () => {
+    const { editTarget, editPad, scores } = this.state;
+    if (!editTarget || editPad === '' || editPad === '-') return;
+    const val = parseInt(editPad, 10);
+    const newScores = { ...scores, [editTarget.playerId]: scores[editTarget.playerId].map((v, i) => i === editTarget.round ? val : v) };
+    this.setState({ scores: newScores, editTarget: null, editPad: '' });
+  };
+  cancelEdit = () => this.setState({ editTarget: null, editPad: '' });
+
+  pressDigit = (d) => {
+    this.setState(s => {
+      if (s.editPad.replace('-', '').length >= 4) return {};
+      return { editPad: s.editPad + String(d) };
+    });
+  };
+  pressZero = () => this.pressDigit(0);
+  backspace = () => this.setState(s => ({ editPad: s.editPad.slice(0, -1) }));
+  toggleSign = () => {
+    if (this.props.allowNegativeScores === false) return;
+    this.setState(s => ({ editPad: s.editPad.startsWith('-') ? s.editPad.slice(1) : '-' + s.editPad }));
+  };
+
+  expandPlayer = (id) => this.setState(s => ({ expandedPlayer: s.expandedPlayer === id ? null : id }));
+
+  requestNewGame = () => this.setState({ confirmNewGame: true });
+  cancelNewGame = () => this.setState({ confirmNewGame: false });
+  doNewGame = () => {
+    try { localStorage.removeItem('kol_state'); } catch (e) {}
+    this.setState({
+      screen: 'setup', players: [{ id: 1, name: '' }, { id: 2, name: '' }], nextId: 3,
+      scores: { 1: Array(7).fill(null), 2: Array(7).fill(null) },
+      round: 0, draft: { 1: '', 2: '' }, tab: 'poeng', editTarget: null, editPad: '',
+      confirmNewGame: false, expandedPlayer: null,
+    });
+  };
+
+  renderVals() {
+    const s = this.state;
+    const allowNegative = this.props.allowNegativeScores !== false;
+    const winnerEffect = this.props.winnerEffect ?? 'confetti';
+    const players = s.players;
+    const round = s.round;
+    const roundDef = ROUNDS[round] || ROUNDS[0];
+    const dealerIndex = players.length ? round % players.length : 0;
+
+    const dots = ROUNDS.map((r, i) => ({
+      bg: i < round ? 'var(--color-accent-2-500)' : i === round ? 'var(--color-accent-500)' : 'var(--color-neutral-300)',
+    }));
+
+    const entryRows = players.map((p, i) => ({
+      id: p.id, name: p.name, isDealer: i === dealerIndex,
+      value: s.draft[p.id] !== undefined ? s.draft[p.id] : '',
+      onChange: (e) => this.updateDraft(p.id, e.target.value),
+    }));
+
+    const digits = [1, 2, 3, 4, 5, 6, 7, 8, 9].map(n => ({ n, onClick: () => this.pressDigit(n) }));
+
+    const computeStandings = () => {
+      const totals = players.map((p, i) => ({
+        id: p.id, name: p.name, isDealer: i === dealerIndex,
+        total: (s.scores[p.id] || []).reduce((a, v) => a + (v || 0), 0),
+      }));
+      const sorted = [...totals].sort((a, b) => a.total - b.total);
+      let rank = 0, lastTotal = null;
+      sorted.forEach((r, i) => {
+        if (r.total !== lastTotal) { rank = i + 1; lastTotal = r.total; }
+        r.rank = rank;
+        r.rankLabel = rank + '.';
+        r.onClick = () => this.expandPlayer(r.id);
+      });
+      return sorted;
+    };
+    const standings = computeStandings();
+
+    let expandedRounds = [];
+    let expandedName = '';
+    const hasExpanded = s.expandedPlayer != null && players.some(p => p.id === s.expandedPlayer);
+    if (hasExpanded) {
+      const p = players.find(p => p.id === s.expandedPlayer);
+      expandedName = p.name;
+      expandedRounds = ROUNDS.map((r, i) => {
+        const v = s.scores[p.id][i];
+        const played = v != null;
+        return {
+          label: 'Runde ' + (i + 1) + ': ' + r.label,
+          displayValue: played ? String(v) : '–',
+          played, cursor: played ? 'pointer' : 'default',
+          onClick: played ? () => this.openEdit(p.id, i) : () => {},
+        };
+      });
+    }
+
+    const winners = standings.filter(w => w.rank === 1);
+    const winnerNames = winners.map(w => w.name).join(' og ');
+    const winnerTotalLabel = winners.length ? winners[0].total + ' poeng' + (winners.length > 1 ? ' (delt seier)' : '') : '';
+
+    return {
+      isSetup: s.screen === 'setup', isPlay: s.screen === 'play', isResult: s.screen === 'result',
+      players: players.map((p, i) => ({
+        id: p.id, name: p.name, placeholder: 'Spiller ' + (i + 1), orderNum: i + 1,
+        onNameChange: (e) => this.updateName(p.id, e.target.value),
+        onRemove: () => this.removePlayer(p.id),
+      })),
+      canAddPlayer: players.length < 8,
+      canRemove: players.length > 2,
+      addPlayer: this.addPlayer, startGame: this.startGame,
+      roundNumber: round + 1, roundDef: { label: roundDef.label, combo: roundDef.combo.map(h => ({ h })) },
+      dots, dealerName: players[dealerIndex] ? players[dealerIndex].name : '',
+      requestNewGame: this.requestNewGame,
+      tabIsPoeng: s.tab === 'poeng', tabIsStilling: s.tab === 'stilling',
+      setTabPoeng: this.setTabPoeng, setTabStilling: this.setTabStilling,
+      entryRows,
+      finishLabel: round === 6 ? 'Se sluttresultat' : 'Lagre runde',
+      saveRound: this.saveRound,
+      digits, allowNegative,
+      toggleSign: this.toggleSign, pressZero: this.pressZero, backspace: this.backspace,
+      standings, hasExpanded, expandedName, expandedRounds,
+      confirmNewGame: s.confirmNewGame, cancelNewGame: this.cancelNewGame, doNewGame: this.doNewGame,
+      hasEditTarget: s.editTarget != null,
+      editRoundNumber: s.editTarget ? s.editTarget.round + 1 : 0,
+      editPlayerName: s.editTarget ? (players.find(p => p.id === s.editTarget.playerId) || {}).name : '',
+      editPadDisplay: s.editPad === '' ? '0' : s.editPad,
+      editPadEmpty: s.editPad === '' || s.editPad === '-',
+      cancelEdit: this.cancelEdit, confirmEdit: this.confirmEdit,
+      showConfetti: winnerEffect === 'confetti',
+      winnerNames, winnerTotalLabel,
+    };
+  }
+}
+
+</script>
+</body>
+</html>
