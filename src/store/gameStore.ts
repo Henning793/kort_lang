@@ -7,11 +7,10 @@ function makeId() {
   return Math.random().toString(36).slice(2, 10);
 }
 
+const DEFAULT_PLAYER_COUNT = 4;
+
 function initialPlayers(): Player[] {
-  return [
-    { id: makeId(), name: '' },
-    { id: makeId(), name: '' },
-  ];
+  return Array.from({ length: DEFAULT_PLAYER_COUNT }, () => ({ id: makeId(), name: '' }));
 }
 
 function initialScores(players: Player[]): Scores {
