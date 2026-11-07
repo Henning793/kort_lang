@@ -92,3 +92,25 @@ h4 {
     opacity: 1;
   }
 }
+
+/* Konfettibombe på resultatskjermen */
+@keyframes kolShake {
+  10%, 90% { transform: translate(-1px, 1px); }
+  20%, 80% { transform: translate(3px, -2px); }
+  30%, 50%, 70% { transform: translate(-5px, 3px); }
+  40%, 60% { transform: translate(5px, -3px); }
+}
+.kol-shake {
+  animation: kolShake 0.5s cubic-bezier(0.36, 0.07, 0.19, 0.97);
+}
+@keyframes kolFlash {
+  0% { opacity: 0; }
+  8% { opacity: 1; }
+  100% { opacity: 0; }
+}
+.kol-flash {
+  animation: kolFlash 0.7s ease-out;
+}
+@media (prefers-reduced-motion: reduce) {
+  .kol-shake, .kol-flash { animation: none; }
+}
