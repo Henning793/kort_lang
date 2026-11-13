@@ -4,6 +4,7 @@ Installerbar PWA for poengtelling i kort- og terningspill. Appen åpner på en s
 alle spillene, og hvert spill lagrer sitt eget pågående spill.
 
 - **Kort og lang**: se `design/design_handoff_kort_og_lang/README.md` for regler og design.
+- **Yatzy**: skandinavisk Yatzy med fri eller tvungen spillmåte, høyest poengsum vinner. Se `src/yatzy/`.
 - **Femkamp**: 5 runder, 3–8 spillere, færrest poeng vinner. Regler og poeng ligger i
   `src/femkamp/rules.ts` og `src/femkamp/logic.ts`.
 
@@ -12,6 +13,7 @@ alle spillene, og hvert spill lagrer sitt eget pågående spill.
 ```bash
 npx tsx src/game/logic.test.ts
 npx tsx src/femkamp/logic.test.ts
+npx tsx src/yatzy/logic.test.ts
 ```
 
 ## Utvikling

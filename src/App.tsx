@@ -5,6 +5,7 @@ import { PlayScreen } from './screens/PlayScreen';
 import { ResultScreen } from './screens/ResultScreen';
 import { HubScreen } from './screens/HubScreen';
 import { FemkampGame } from './femkamp/FemkampGame';
+import { YatzyGame } from './yatzy/YatzyGame';
 
 function KortOgLang() {
   const screen = useGameStore((s) => s.screen);
@@ -26,6 +27,7 @@ export default function App() {
         {view === 'hub' && <HubScreen />}
         {view === 'kortlang' && <KortOgLang />}
         {view === 'femkamp' && <FemkampGame />}
+        {view === 'yatzy' && <YatzyGame />}
       </div>
     </div>
   );

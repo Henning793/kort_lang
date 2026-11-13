@@ -1,7 +1,7 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 
-export type GameId = 'kortlang' | 'femkamp';
+export type GameId = 'kortlang' | 'femkamp' | 'yatzy';
 export type View = 'hub' | GameId;
 
 export type LastResult = { winners: string; date: string };

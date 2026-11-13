@@ -1,7 +1,8 @@
 import type { ReactNode } from 'react';
-import { ChevronRight, Dices } from 'lucide-react';
+import { ChevronRight } from 'lucide-react';
 import { CardIcon } from '../components/ui/CardIcon';
 import { PlayingCard } from '../components/ui/PlayingCard';
+import { Die } from '../components/ui/Die';
 import { useAppStore, relativeDay, type GameId } from '../store/appStore';
 import { FEMKAMP_ROUNDS } from '../femkamp/rules';
 
@@ -105,14 +106,22 @@ export function HubScreen() {
         />
 
         <div className="text-[11px] tracking-wider uppercase font-bold opacity-55 mt-1">Terningspill</div>
-        <div className="border-[1.5px] border-dashed border-divider rounded-card p-4 flex gap-3.5 items-center">
-          <Dices size={30} strokeWidth={2.25} className="flex-none opacity-50" />
-          <p className="m-0 text-[13px]">
-            <span className="block font-heading text-base">Ingen terningspill ennå</span>
-            Her havner Yatzy, Mexico eller det dere spiller, når vi legger det til.
-          </p>
-        </div>
+        <GameCard
+          game="yatzy"
+          artBg="bg-accent-100"
+          art={
+            <div className="relative w-[60px] h-[50px]">
+              <Die face={5} className="absolute! left-0 top-0 -rotate-12" />
+              <Die face={3} className="absolute! right-0 bottom-0 rotate-[10deg]" />
+            </div>
+          }
+          title="Yatzy"
+          badge="Ny"
+          text="Fem terninger, tre kast. Høyest poengsum vinner."
+          tags={['Fri eller tvungen', '1–8 spillere']}
+        />
       </div>
     </div>
   );
 }
+
