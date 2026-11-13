@@ -13,6 +13,12 @@ import { useFemkampStore } from './store';
 import { FEMKAMP_ROUNDS, FEMKAMP_NUM_ROUNDS, cardsPerPlayer } from './rules';
 import { roundPoints, checkCount, kabalFinishers, femkampScores, fmtPoints } from './logic';
 import { RulesSheet } from './RulesSheet';
+import { PlayerBadge } from '../components/game/PlayerBadge';
+import { TurnBanner } from '../components/game/TurnBanner';
+import { GameToast } from '../components/game/GameToast';
+import { useGameToast } from '../components/game/useGameToast';
+import { playerColor, GOLD } from '../components/game/colors';
+import type { Player } from '../game/types';
 import { FemkampTable } from './FemkampTable';
 
 function pointsClass(p: number) {
@@ -28,8 +34,31 @@ function PlayerName({ name, dealer }: { name: string; dealer: boolean }) {
   );
 }
 
+/** Indeksene til den/de som leder (lavest sum), når minst én runde er lagret. */
+function leaders(players: Player[], s: Parameters<typeof femkampScores>[1]): number[] {
+  if (!s.saved.some(Boolean)) return [];
+  const st = computeStandings(players, femkampScores(players, s), 0);
+  const ids = new Set(st.filter((x) => x.rank === 1).map((x) => x.id));
+  return players.flatMap((p, i) => (ids.has(p.id) ? [i] : []));
+}
+
+/** Popup etter lagret runde: hvem leder, og om noen tok ledelsen. */
+function saveToast(players: Player[], before: number[], after: number[], round: number, total: number) {
+  const name = after.map((i) => players[i].name).join(' og ');
+  const changed = after.length > 0 && (after.length !== before.length || after.some((i) => !before.includes(i)));
+  if (changed && before.length > 0 && after.length === 1) {
+    return { text: `${name} tok ledelsen!`, sub: `Etter runde ${round + 1}`, color: playerColor(after[0]), big: true };
+  }
+  return {
+    text: `Runde ${round + 1} lagret`,
+    sub: after.length ? `${name} leder med ${fmtPoints(total)} p` : undefined,
+    color: after.length === 1 ? playerColor(after[0]) : GOLD,
+  };
+}
+
 export function FemkampPlay() {
   const s = useFemkampStore();
+  const { toast, show } = useGameToast();
   const [rulesOpen, setRulesOpen] = useState(false);
   const [confirmOpen, setConfirmOpen] = useState(false);
 
@@ -89,6 +118,21 @@ export function FemkampPlay() {
             );
           })}
         </div>
+        <TurnBanner
+          animKey={`deal-${r}`}
+          color={playerColor(dealerIndex(r, s.players.length))}
+          title={`${s.players[dealerIndex(r, s.players.length)].name} deler ut`}
+          subtitle={`Runde ${r + 1} · ${def.name}`}
+          art={[0, 1, 2].map((k) => (
+            <PlayingCard
+              key={k}
+              glyph={FEMKAMP_ROUNDS[r].glyph}
+              red={FEMKAMP_ROUNDS[r].red}
+              className="yz-roll"
+              style={{ ['--r' as string]: `${(k - 1) * 10}deg`, animationDelay: `${k * 70}ms` }}
+            />
+          ))}
+        />
         <div className="flex items-center gap-3 bg-surface px-3.5 py-3 rounded-card">
           <PlayingCard glyph={def.glyph} red={def.red} size="md" />
           <div className="min-w-0">
@@ -104,7 +148,16 @@ export function FemkampPlay() {
         <TabSwitcher tab={s.tab} onChange={s.setTab} />
       </div>
 
-      {s.tab === 'poeng' ? def.kind === 'kabal' ? <KabalEntry /> : <CountEntry /> : <StillingTab />}
+      {s.tab === 'poeng' ? (
+        def.kind === 'kabal' ? (
+          <KabalEntry onToast={show} />
+        ) : (
+          <CountEntry onToast={show} />
+        )
+      ) : (
+        <StillingTab />
+      )}
+      <GameToast toast={toast} />
 
       <RulesSheet open={rulesOpen} onClose={() => setRulesOpen(false)} />
       <Dialog
@@ -140,13 +193,31 @@ function saveLabel(view: number, current: number) {
   return view === FEMKAMP_NUM_ROUNDS - 1 ? 'Se sluttresultat' : 'Lagre runde';
 }
 
-function CountEntry() {
+type ShowToast = ReturnType<typeof useGameToast>['show'];
+
+function useSaveWithToast(onToast: ShowToast) {
+  const s = useFemkampStore();
+  return () => {
+    const before = leaders(s.players, s);
+    const round = s.view;
+    s.saveRound();
+    const n = useFemkampStore.getState();
+    if (n.screen !== 'play') return;
+    const after = leaders(n.players, n);
+    const st = computeStandings(n.players, femkampScores(n.players, n), 0);
+    onToast(saveToast(n.players, before, after, round, st[0]?.total ?? 0));
+  };
+}
+
+function CountEntry({ onToast }: { onToast: ShowToast }) {
   const s = useFemkampStore();
   const r = s.view;
   const def = FEMKAMP_ROUNDS[r];
   const counts = s.counts[r];
   const check = checkCount(r, counts, cardsPerPlayer(s.players.length));
   const dIdx = dealerIndex(r, s.players.length);
+  const save = useSaveWithToast(onToast);
+  const lead = leaders(s.players, s);
 
   return (
     <div className="px-5 pb-7 flex flex-col gap-4 flex-1">
@@ -155,6 +226,7 @@ function CountEntry() {
           const pts = roundPoints(s, r, i);
           return (
             <div key={p.id} className="flex items-center gap-2.5 pl-3.5 pr-2.5 py-2 rounded-card bg-surface">
+              <PlayerBadge name={p.name} index={i} size={30} crown={lead.includes(i)} />
               <div className="flex-1 min-w-0 flex flex-col">
                 <PlayerName name={p.name} dealer={i === dIdx} />
                 <span className="text-xs opacity-60">{def.unit}</span>
@@ -182,14 +254,14 @@ function CountEntry() {
         {check.text}
       </div>
 
-      <Button variant="primary" block onClick={s.saveRound} className="text-base p-3.5 mt-auto">
+      <Button variant="primary" block onClick={save} className="text-base p-3.5 mt-auto">
         {saveLabel(r, s.current)}
       </Button>
     </div>
   );
 }
 
-function KabalEntry() {
+function KabalEntry({ onToast }: { onToast: ShowToast }) {
   const s = useFemkampStore();
   const r = s.view;
   const k = s.kabal;
@@ -197,12 +269,15 @@ function KabalEntry() {
   const dIdx = dealerIndex(r, s.players.length);
   const finishers = kabalFinishers(k.left);
   const canSave = finishers.length === 1;
+  const save = useSaveWithToast(onToast);
+  const lead = leaders(s.players, s);
 
   return (
     <div className="px-5 pb-7 flex flex-col gap-4 flex-1">
       <div className="flex flex-col gap-2">
         {s.players.map((p, i) => (
           <div key={p.id} className="flex items-center gap-2.5 pl-3.5 pr-2.5 py-2 rounded-card bg-surface">
+            <PlayerBadge name={p.name} index={i} size={30} crown={lead.includes(i)} />
             <div className="flex-1 min-w-0 flex flex-col">
               <PlayerName name={p.name} dealer={i === dIdx} />
               <span className="text-xs opacity-60 tabular-nums">
@@ -220,8 +295,12 @@ function KabalEntry() {
                   <Undo2 size={15} strokeWidth={2.5} />
                 </button>
                 <button
-                  onClick={() => s.adjustPass(i, 1)}
-                  className="flex items-center gap-1.5 bg-accent text-bg rounded-pill px-3.5 py-2 font-heading text-sm active:scale-95 transition-transform cursor-pointer"
+                  onClick={() => {
+                    s.adjustPass(i, 1);
+                    onToast({ text: '+1', sub: `${p.name} måtte passe`, color: playerColor(i) });
+                  }}
+                  className="flex items-center gap-1.5 text-bg rounded-pill px-3.5 py-2 font-heading text-sm active:scale-95 transition-transform cursor-pointer"
+                  style={{ background: playerColor(i) }}
                 >
                   Pass
                   <span className="bg-white/25 rounded-pill px-1.5 font-body font-bold text-[13px]">+1</span>
@@ -273,7 +352,7 @@ function KabalEntry() {
             <Button variant="secondary" onClick={() => s.setKabalPhase('live')}>
               Tilbake
             </Button>
-            <Button variant="primary" onClick={s.saveRound} disabled={!canSave} className="flex-1 text-base p-3.5">
+            <Button variant="primary" onClick={save} disabled={!canSave} className="flex-1 text-base p-3.5">
               {saveLabel(r, s.current)}
             </Button>
           </div>
@@ -289,7 +368,12 @@ function StillingTab() {
   const standings = computeStandings(s.players, scores, s.current);
   return (
     <div className="px-5 pb-7 flex flex-col gap-3">
-      <FemkampTable standings={standings} scores={scores} showDealer />
+      <FemkampTable
+        standings={standings}
+        scores={scores}
+        showDealer
+        indexOf={(id) => s.players.findIndex((p) => p.id === id)}
+      />
       <p className="m-0 text-xs opacity-60">Trykk på en fullført prikk over for å rette en tidligere runde.</p>
     </div>
   );

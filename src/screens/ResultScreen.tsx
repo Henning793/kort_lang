@@ -7,6 +7,7 @@ import { Button } from '../components/ui/Button';
 import { NewGameDialog } from '../components/NewGameDialog';
 import { ConfettiBomb } from '../components/ConfettiBomb';
 import { BackButton } from '../components/BackButton';
+import { Podium, RestList } from '../components/game/Podium';
 
 export function ResultScreen() {
   const players = useGameStore((s) => s.players);
@@ -17,6 +18,13 @@ export function ResultScreen() {
 
   const standings = computeStandings(players, scores, 6);
   const winners = winnersOf(standings);
+  const podiumRows = standings.map((r) => ({
+    id: r.id,
+    name: r.name,
+    rank: r.rank,
+    index: players.findIndex((p) => p.id === r.id),
+    label: `${r.total} p`,
+  }));
   const winnerNames = winners.map((w) => w.name).join(' og ');
   const winnerTotalLabel = winners.length
     ? `${winners[0].total} poeng${winners.length > 1 ? ' (delt seier)' : ''}`
@@ -61,32 +69,8 @@ export function ResultScreen() {
           <div className="opacity-70 text-sm">{winnerTotalLabel}</div>
         </div>
 
-        <div className="px-5 pt-2">
-          <table className="w-full border-collapse text-sm">
-            <thead>
-              <tr>
-                <th className="text-left text-[11px] tracking-wider uppercase opacity-60 py-2 border-b border-divider">
-                  Plass
-                </th>
-                <th className="text-left text-[11px] tracking-wider uppercase opacity-60 py-2 border-b border-divider">
-                  Spiller
-                </th>
-                <th className="text-right text-[11px] tracking-wider uppercase opacity-60 py-2 border-b border-divider">
-                  Poeng
-                </th>
-              </tr>
-            </thead>
-            <tbody>
-              {standings.map((s) => (
-                <tr key={s.id}>
-                  <td className="font-heading py-2 border-b border-black/10">{s.rankLabel}</td>
-                  <td className="py-2 border-b border-black/10">{s.name}</td>
-                  <td className="text-right font-bold py-2 border-b border-black/10">{s.total}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+        <Podium rows={podiumRows} />
+        <RestList rows={podiumRows} />
 
         <div className="px-5 pt-6 mt-auto">
           <Button variant="primary" block onClick={() => setConfirmOpen(true)} className="text-base p-3.5">

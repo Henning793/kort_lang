@@ -9,6 +9,7 @@ import { useAppStore } from '../store/appStore';
 import { useFemkampStore } from './store';
 import { femkampScores, fmtPoints } from './logic';
 import { FemkampTable } from './FemkampTable';
+import { Podium } from '../components/game/Podium';
 
 export function FemkampResult() {
   const s = useFemkampStore();
@@ -48,8 +49,22 @@ export function FemkampResult() {
           </div>
         </div>
 
-        <div className="px-5 pt-2">
-          <FemkampTable standings={standings} scores={scores} />
+        <Podium
+          rows={standings.map((r) => ({
+            id: r.id,
+            name: r.name,
+            rank: r.rank,
+            index: s.players.findIndex((p) => p.id === r.id),
+            label: `${fmtPoints(r.total)} p`,
+          }))}
+        />
+
+        <div className="px-5 pt-4">
+          <FemkampTable
+            standings={standings}
+            scores={scores}
+            indexOf={(id) => s.players.findIndex((p) => p.id === id)}
+          />
         </div>
 
         <div className="px-5 pt-6 mt-auto flex gap-2">
