@@ -1,5 +1,5 @@
 import type { ReactNode } from 'react';
-import { ChevronRight, Dices } from 'lucide-react';
+import { ChevronRight } from 'lucide-react';
 import { CardIcon } from '../components/ui/CardIcon';
 import { PlayingCard } from '../components/ui/PlayingCard';
 import { useAppStore, relativeDay, type GameId } from '../store/appStore';
@@ -105,14 +105,43 @@ export function HubScreen() {
         />
 
         <div className="text-[11px] tracking-wider uppercase font-bold opacity-55 mt-1">Terningspill</div>
-        <div className="border-[1.5px] border-dashed border-divider rounded-card p-4 flex gap-3.5 items-center">
-          <Dices size={30} strokeWidth={2.25} className="flex-none opacity-50" />
-          <p className="m-0 text-[13px]">
-            <span className="block font-heading text-base">Ingen terningspill ennå</span>
-            Her havner Yatzy, Mexico eller det dere spiller, når vi legger det til.
-          </p>
-        </div>
+        <GameCard
+          game="yatzy"
+          artBg="bg-accent-100"
+          art={
+            <div className="relative w-[60px] h-[50px]">
+              <Die pips={5} className="absolute left-0 top-0 -rotate-12" />
+              <Die pips={3} className="absolute right-0 bottom-0 rotate-[10deg]" />
+            </div>
+          }
+          title="Yatzy"
+          badge="Ny"
+          text="Fem terninger, tre kast. Høyest poengsum vinner."
+          tags={['Fri eller tvungen', '1–8 spillere']}
+        />
       </div>
     </div>
+  );
+}
+
+const PIPS: Record<number, [number, number][]> = {
+  3: [[25, 25], [50, 50], [75, 75]],
+  5: [[25, 25], [75, 25], [50, 50], [25, 75], [75, 75]],
+};
+
+function Die({ pips, className = '' }: { pips: 3 | 5; className?: string }) {
+  return (
+    <span
+      aria-hidden
+      className={`block w-8 h-8 rounded-[8px] bg-neutral-100 border border-divider shadow-sm ${className}`}
+    >
+      {PIPS[pips].map(([x, y], i) => (
+        <i
+          key={i}
+          className="absolute w-[6px] h-[6px] rounded-full bg-ink -translate-x-1/2 -translate-y-1/2"
+          style={{ left: `${x}%`, top: `${y}%` }}
+        />
+      ))}
+    </span>
   );
 }
