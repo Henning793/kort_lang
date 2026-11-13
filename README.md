@@ -1,4 +1,4 @@
-# Spillbordet
+# Kortana
 
 Installerbar PWA for poengtelling i kort- og terningspill. Appen åpner på en startside med
 alle spillene, og hvert spill lagrer sitt eget pågående spill.

@@ -149,7 +149,7 @@ export function HubScreen() {
     <div className="flex flex-col flex-1">
       <div className="flex items-center gap-2 px-5 pt-5 pb-2 font-heading text-[19px]">
         <CardIcon size={20} />
-        Spillbordet
+        Kortana
       </div>
 
       <div className="px-5 pt-1 pb-8 flex flex-col gap-3.5">
