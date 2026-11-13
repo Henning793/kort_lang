@@ -5,8 +5,8 @@ import { FEMKAMP_ROUNDS } from './rules';
 import { fmtPoints as fmt } from './logic';
 
 
-const th = 'text-[10px] tracking-wider uppercase opacity-60 py-2 px-1 border-b border-divider font-bold';
-const td = 'py-2 px-1 border-b border-black/10';
+const th = 'text-[11px] tracking-wider uppercase opacity-60 py-2.5 px-1 border-b border-divider font-bold';
+const td = 'py-3 px-1 border-b border-black/10';
 
 /** Stilling med én kolonne per runde, så man ser hvor poengene kom fra. */
 export function FemkampTable({
@@ -23,7 +23,7 @@ export function FemkampTable({
 }) {
   return (
     <div className="overflow-x-auto">
-      <table className="w-full border-collapse text-sm tabular-nums">
+      <table className="w-full border-collapse text-base tabular-nums">
         <thead>
           <tr>
             <th className={`${th} text-left`}>Plass</th>
@@ -42,7 +42,7 @@ export function FemkampTable({
               <td className={`${td} font-heading`}>{s.rankLabel}</td>
               <td className={td}>
                 <span className="inline-flex items-center gap-1.5">
-                {indexOf && <PlayerBadge name={s.name} index={indexOf(s.id)} size={22} crown={s.rank === 1} />}
+                {indexOf && <PlayerBadge name={s.name} index={indexOf(s.id)} size={28} crown={s.rank === 1} />}
                 <span className="relative inline-block">
                   {s.name}
                   {showDealer && s.isDealer && <DealerMark size={13} style={{ top: -8, right: -10 }} />}
@@ -54,7 +54,7 @@ export function FemkampTable({
                 return (
                   <td
                     key={k}
-                    className={`${td} text-center text-[13px] ${v != null && v < 0 ? 'text-accent2-700' : 'opacity-70'}`}
+                    className={`${td} text-center text-base ${v != null && v < 0 ? 'text-accent2-700' : 'opacity-70'}`}
                   >
                     {v == null ? '–' : fmt(v)}
                   </td>
