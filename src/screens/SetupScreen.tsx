@@ -3,6 +3,7 @@ import { useGameStore } from '../store/gameStore';
 import { Input } from '../components/ui/Input';
 import { Button } from '../components/ui/Button';
 import { CardIcon } from '../components/ui/CardIcon';
+import { BackButton } from '../components/BackButton';
 
 export function SetupScreen() {
   const players = useGameStore((s) => s.players);
@@ -15,8 +16,9 @@ export function SetupScreen() {
   const canRemove = players.length > 2;
 
   return (
-    <div className="px-5 pt-7 pb-10 flex flex-col gap-6">
+    <div className="px-5 pt-4 pb-10 flex flex-col gap-6">
       <div className="flex items-center gap-2.5">
+        <BackButton />
         <CardIcon size={26} />
         <h1 className="text-[28px] m-0">Kort og lang</h1>
       </div>

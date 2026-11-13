@@ -17,9 +17,9 @@ export default defineConfig({
         'icons/apple-touch-icon-180.png',
       ],
       manifest: {
-        name: 'Kort og lang',
-        short_name: 'Kort og lang',
-        description: 'Poengtelling for kortspillet Kort og lang',
+        name: 'Kortana',
+        short_name: 'Kortana',
+        description: 'Poengtelling for kort- og terningspill',
         lang: 'no',
         theme_color: '#c67139',
         background_color: '#f5ead8',
