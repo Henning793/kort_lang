@@ -1,7 +1,8 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import type { Player, Scores, Screen, Tab } from '../game/types';
-import { emptyScoreRow } from '../game/logic';
+import { emptyScoreRow, computeStandings, winnersOf } from '../game/logic';
+import { useAppStore } from './appStore';
 
 function makeId() {
   return Math.random().toString(36).slice(2, 10);
@@ -94,6 +95,8 @@ export const useGameStore = create<GameState>()(
           if (s.round < 6) {
             return { scores: newScores, round: s.round + 1 };
           }
+          const winners = winnersOf(computeStandings(s.players, newScores, 0)).map((w) => w.name);
+          useAppStore.getState().recordResult('kortlang', winners);
           return { scores: newScores, screen: 'result' as Screen };
         }),
 

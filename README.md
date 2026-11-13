@@ -1,7 +1,18 @@
-# Kort og lang
+# Spillbordet
 
-Installerbar PWA for poengtelling i kortspillet "Kort og lang". Se
-`design/design_handoff_kort_og_lang/README.md` for spillregler og designspesifikasjon.
+Installerbar PWA for poengtelling i kort- og terningspill. Appen åpner på en startside med
+alle spillene, og hvert spill lagrer sitt eget pågående spill.
+
+- **Kort og lang**: se `design/design_handoff_kort_og_lang/README.md` for regler og design.
+- **Femkamp**: 5 runder, 3–8 spillere, færrest poeng vinner. Regler og poeng ligger i
+  `src/femkamp/rules.ts` og `src/femkamp/logic.ts`.
+
+## Tester
+
+```bash
+npx tsx src/game/logic.test.ts
+npx tsx src/femkamp/logic.test.ts
+```
 
 ## Utvikling
 

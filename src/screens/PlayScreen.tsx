@@ -7,6 +7,7 @@ import { RoundProgressDots } from '../components/RoundProgressDots';
 import { RoundTypeChips } from '../components/RoundTypeChips';
 import { TabSwitcher } from '../components/TabSwitcher';
 import { NewGameDialog } from '../components/NewGameDialog';
+import { BackButton } from '../components/BackButton';
 import { PoengTab } from './PoengTab';
 import { StillingTab } from './StillingTab';
 
@@ -20,7 +21,8 @@ export function PlayScreen() {
 
   return (
     <div className="flex flex-col flex-1">
-      <div className="flex items-center gap-4 px-5 pt-4 pb-2">
+      <div className="flex items-center gap-2 px-5 pt-4 pb-2">
+        <BackButton />
         <div className="flex items-center gap-2 font-heading text-[17px] mr-auto">
           <CardIcon size={18} />
           Kort og lang

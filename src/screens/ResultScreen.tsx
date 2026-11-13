@@ -6,6 +6,7 @@ import { CardIcon } from '../components/ui/CardIcon';
 import { Button } from '../components/ui/Button';
 import { NewGameDialog } from '../components/NewGameDialog';
 import { ConfettiBomb } from '../components/ConfettiBomb';
+import { BackButton } from '../components/BackButton';
 
 export function ResultScreen() {
   const players = useGameStore((s) => s.players);
@@ -28,7 +29,8 @@ export function ResultScreen() {
         className={`flex flex-col flex-1 pb-7 ${shaking ? 'kol-shake' : ''}`}
         onAnimationEnd={(e) => e.target === e.currentTarget && setShaking(false)}
       >
-        <div className="flex items-center gap-4 px-5 pt-4">
+        <div className="flex items-center gap-2 px-5 pt-4">
+          <BackButton />
           <div className="flex items-center gap-2 font-heading text-[17px]">
             <CardIcon size={18} />
             Kort og lang
