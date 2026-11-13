@@ -1,6 +1,17 @@
 import { useEffect, useState } from 'react';
+import { PlayerBadge } from '../components/game/PlayerBadge';
+import { GameToast } from '../components/game/GameToast';
+import { useGameToast } from '../components/game/useGameToast';
+import { playerColor, GOLD } from '../components/game/colors';
 import { useGameStore } from '../store/gameStore';
-import { dealerIndex } from '../game/logic';
+import { dealerIndex, computeStandings } from '../game/logic';
+import type { Player, Scores } from '../game/types';
+
+function leaderIds(players: Player[], scores: Scores, round: number): string[] {
+  if (round === 0) return [];
+  const st = computeStandings(players, scores, 0);
+  return st.filter((x) => x.rank === 1).map((x) => x.id);
+}
 import { DealerMark } from '../components/DealerMark';
 import { Button } from '../components/ui/Button';
 
@@ -18,6 +29,8 @@ export function PoengTab() {
   const round = useGameStore((s) => s.round);
   const scores = useGameStore((s) => s.scores);
   const saveRound = useGameStore((s) => s.saveRound);
+  const { toast, show } = useGameToast();
+  const lead = leaderIds(players, scores, round);
 
   const [draft, setDraft] = useState<Record<string, string>>(() => buildDraft(round, players, scores));
 
@@ -38,7 +51,25 @@ export function PoengTab() {
   }
 
   function handleSave() {
+    const before = lead;
+    const savedRound = round;
     saveRound(draft);
+    const n = useGameStore.getState();
+    if (n.screen !== 'play') return;
+    const after = leaderIds(n.players, n.scores, n.round);
+    const st = computeStandings(n.players, n.scores, 0);
+    const names = st.filter((x) => x.rank === 1).map((x) => x.name).join(' og ');
+    const idx = n.players.findIndex((p) => p.id === after[0]);
+    const took = before.length > 0 && after.length === 1 && !before.includes(after[0]);
+    show(
+      took
+        ? { text: `${names} tok ledelsen!`, sub: `Etter runde ${savedRound + 1}`, color: playerColor(idx), big: true }
+        : {
+            text: `Runde ${savedRound + 1} lagret`,
+            sub: `${names} leder med ${st[0]?.total ?? 0} p`,
+            color: after.length === 1 ? playerColor(idx) : GOLD,
+          }
+    );
   }
 
   const finishLabel = round === 6 ? 'Se sluttresultat' : 'Lagre runde';
@@ -49,9 +80,10 @@ export function PoengTab() {
         {players.map((p, i) => (
           <div
             key={p.id}
-            className="flex items-center justify-between px-3.5 py-2.5 rounded-card bg-surface"
+            className="flex items-center gap-2.5 px-3.5 py-2.5 rounded-card bg-surface"
           >
-            <span className="relative inline-block font-heading text-[15px]">
+            <PlayerBadge name={p.name} index={i} size={30} crown={lead.includes(p.id)} />
+            <span className="relative inline-block font-heading text-[15px] mr-auto">
               {p.name}
               {i === dIdx && <DealerMark size={14} style={{ top: -9, right: -9 }} />}
             </span>
@@ -70,6 +102,7 @@ export function PoengTab() {
       <Button variant="primary" block onClick={handleSave} className="text-base p-3.5">
         {finishLabel}
       </Button>
+      <GameToast toast={toast} />
     </div>
   );
 }

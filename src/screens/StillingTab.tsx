@@ -4,6 +4,7 @@ import { useGameStore } from '../store/gameStore';
 import { computeStandings } from '../game/logic';
 import { ROUNDS } from '../game/rounds';
 import { DealerMark } from '../components/DealerMark';
+import { PlayerBadge } from '../components/game/PlayerBadge';
 import { EditScoreDialog } from '../components/EditScoreDialog';
 
 export function StillingTab() {
@@ -41,9 +42,17 @@ export function StillingTab() {
             >
               <td className="font-heading py-2 border-b border-black/10">{s.rankLabel}</td>
               <td className="py-2 border-b border-black/10">
+                <span className="inline-flex items-center gap-2">
+                <PlayerBadge
+                  name={s.name}
+                  index={players.findIndex((p) => p.id === s.id)}
+                  size={24}
+                  crown={round > 0 && s.rank === 1}
+                />
                 <span className="relative inline-block">
                   {s.name}
                   {s.isDealer && <DealerMark size={13} style={{ top: -8, right: -8 }} />}
+                </span>
                 </span>
               </td>
               <td className="text-right font-bold py-2 border-b border-black/10">{s.total}</td>

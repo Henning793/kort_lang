@@ -1,5 +1,6 @@
 import type { Scores, StandingRow } from '../game/types';
 import { DealerMark } from '../components/DealerMark';
+import { PlayerBadge } from '../components/game/PlayerBadge';
 import { FEMKAMP_ROUNDS } from './rules';
 import { fmtPoints as fmt } from './logic';
 
@@ -12,10 +13,13 @@ export function FemkampTable({
   standings,
   scores,
   showDealer = false,
+  indexOf,
 }: {
   standings: StandingRow[];
   scores: Scores;
   showDealer?: boolean;
+  /** Spillerens plass i rekkefølgen, for farge på merket. */
+  indexOf?: (id: string) => number;
 }) {
   return (
     <div className="overflow-x-auto">
@@ -37,9 +41,12 @@ export function FemkampTable({
             <tr key={s.id} className={s.rank === 1 ? 'bg-accent2/10' : ''}>
               <td className={`${td} font-heading`}>{s.rankLabel}</td>
               <td className={td}>
+                <span className="inline-flex items-center gap-1.5">
+                {indexOf && <PlayerBadge name={s.name} index={indexOf(s.id)} size={22} crown={s.rank === 1} />}
                 <span className="relative inline-block">
                   {s.name}
                   {showDealer && s.isDealer && <DealerMark size={13} style={{ top: -8, right: -10 }} />}
+                </span>
                 </span>
               </td>
               {FEMKAMP_ROUNDS.map((_, k) => {
