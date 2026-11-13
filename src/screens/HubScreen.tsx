@@ -3,91 +3,7 @@ import { ChevronRight, Dices } from 'lucide-react';
 import { CardIcon } from '../components/ui/CardIcon';
 import { PlayingCard } from '../components/ui/PlayingCard';
 import { useAppStore, relativeDay, type GameId } from '../store/appStore';
-import { useGameStore } from '../store/gameStore';
-import { computeStandings } from '../game/logic';
-import { NUM_ROUNDS } from '../game/rounds';
-import { useFemkampStore } from '../femkamp/store';
-import { femkampScores, fmtPoints } from '../femkamp/logic';
-import { FEMKAMP_ROUNDS, FEMKAMP_NUM_ROUNDS } from '../femkamp/rules';
-
-type Ongoing = {
-  game: GameId;
-  title: string;
-  round: number;
-  rounds: number;
-  players: string[];
-  leader: string;
-  leaderTotal: number;
-};
-
-function useOngoing(): Ongoing[] {
-  const kol = useGameStore();
-  const fk = useFemkampStore();
-  const list: Ongoing[] = [];
-
-  if (fk.screen === 'play') {
-    const st = computeStandings(fk.players, femkampScores(fk.players, fk), 0);
-    list.push({
-      game: 'femkamp',
-      title: 'Femkamp',
-      round: fk.current,
-      rounds: FEMKAMP_NUM_ROUNDS,
-      players: fk.players.map((p) => p.name),
-      leader: st.filter((x) => x.rank === 1).map((x) => x.name).join(' og '),
-      leaderTotal: st[0]?.total ?? 0,
-    });
-  }
-  if (kol.screen === 'play') {
-    const st = computeStandings(kol.players, kol.scores, 0);
-    list.push({
-      game: 'kortlang',
-      title: 'Kort og lang',
-      round: kol.round,
-      rounds: NUM_ROUNDS,
-      players: kol.players.map((p) => p.name),
-      leader: st.filter((x) => x.rank === 1).map((x) => x.name).join(' og '),
-      leaderTotal: st[0]?.total ?? 0,
-    });
-  }
-  return list;
-}
-
-function ResumeCard({ g }: { g: Ongoing }) {
-  const open = useAppStore((s) => s.open);
-  const started = g.round > 0;
-  return (
-    <div className="bg-ink text-bg rounded-card px-4.5 py-4 flex flex-col gap-2.5">
-      <div className="min-w-0">
-        <div className="text-[10px] tracking-[0.1em] uppercase font-bold text-accent-200">Pågående spill</div>
-        <div className="font-heading text-xl">
-          {g.title} · runde {g.round + 1} av {g.rounds}
-        </div>
-        <div className="text-[13px] opacity-75">
-          {g.players.join(', ')}
-          {started && ` · ${g.leader} leder med ${fmtPoints(g.leaderTotal)} p`}
-        </div>
-      </div>
-      <div className="flex items-center gap-3">
-        <div className="flex gap-1">
-          {Array.from({ length: g.rounds }, (_, k) => (
-            <i
-              key={k}
-              className={`block w-4 h-[5px] rounded-pill ${
-                k < g.round ? 'bg-accent2-300' : k === g.round ? 'bg-accent' : 'bg-bg/25'
-              }`}
-            />
-          ))}
-        </div>
-        <button
-          onClick={() => open(g.game)}
-          className="ml-auto bg-accent text-bg rounded-pill px-5 py-2 font-heading text-sm hover:bg-accent-600 cursor-pointer"
-        >
-          Fortsett
-        </button>
-      </div>
-    </div>
-  );
-}
+import { FEMKAMP_ROUNDS } from '../femkamp/rules';
 
 function GameCard({
   game,
@@ -143,8 +59,6 @@ function GameCard({
 }
 
 export function HubScreen() {
-  const ongoing = useOngoing();
-
   return (
     <div className="flex flex-col flex-1">
       <div className="flex items-center gap-2 px-5 pt-5 pb-2 font-heading text-[19px]">
@@ -153,10 +67,6 @@ export function HubScreen() {
       </div>
 
       <div className="px-5 pt-1 pb-8 flex flex-col gap-3.5">
-        {ongoing.map((g) => (
-          <ResumeCard key={g.game} g={g} />
-        ))}
-
         <div className="text-[11px] tracking-wider uppercase font-bold opacity-55 mt-1">Kortspill</div>
         <GameCard
           game="kortlang"
