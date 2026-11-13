@@ -64,3 +64,17 @@ export function yatzyStandings(players: Player[], sheets: Sheets): YatzyStanding
 export function isValid(cat: number, value: number): boolean {
   return YATZY_CATEGORIES[cat].values.includes(value);
 }
+
+/** Hvor mye spilleren ligger foran (+) eller bak (−) tre av hver på de utfylte øverste rutene. */
+export function parDiff(sheet: Sheet): number {
+  return sheet
+    .slice(0, UPPER_COUNT)
+    .reduce<number>((a, v, i) => (v == null ? a : a + v - 3 * (i + 1)), 0);
+}
+
+const PLAYER_COLORS = ['#c67139', '#5f7f9e', '#7a8a5e', '#b0476e', '#c89a1c', '#6b5ca5', '#2f8f83', '#8c491a'];
+
+/** Fast farge per spiller etter rekkefølge. */
+export function playerColor(i: number): string {
+  return PLAYER_COLORS[i % PLAYER_COLORS.length];
+}

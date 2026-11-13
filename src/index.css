@@ -114,3 +114,34 @@ h4 {
 @media (prefers-reduced-motion: reduce) {
   .kol-shake, .kol-flash { animation: none; }
 }
+
+/* Yatzy: litt spillfølelse */
+@keyframes yzPop {
+  0% { transform: scale(0.6); }
+  60% { transform: scale(1.18); }
+  100% { transform: scale(1); }
+}
+.yz-pop { animation: yzPop 0.35s cubic-bezier(0.2, 1.4, 0.4, 1); }
+@keyframes yzRoll {
+  0% { transform: rotate(-200deg) scale(0.4); opacity: 0; }
+  70% { transform: rotate(12deg) scale(1.08); opacity: 1; }
+  100% { transform: rotate(var(--r, 0deg)) scale(1); }
+}
+.yz-roll { animation: yzRoll 0.6s cubic-bezier(0.2, 1, 0.4, 1) both; }
+@keyframes yzToast {
+  0% { transform: translate(-50%, 16px) scale(0.8); opacity: 0; }
+  15% { transform: translate(-50%, 0) scale(1.05); opacity: 1; }
+  25% { transform: translate(-50%, 0) scale(1); }
+  80% { opacity: 1; }
+  100% { transform: translate(-50%, -12px); opacity: 0; }
+}
+.yz-toast { animation: yzToast 1.8s ease forwards; }
+@keyframes yzGlow {
+  0%, 100% { box-shadow: 0 0 0 0 color-mix(in srgb, var(--glow, #c67139) 55%, transparent); }
+  50% { box-shadow: 0 0 0 6px color-mix(in srgb, var(--glow, #c67139) 0%, transparent); }
+}
+.yz-glow { animation: yzGlow 1.6s ease-in-out infinite; }
+@media (prefers-reduced-motion: reduce) {
+  .yz-pop, .yz-roll, .yz-toast, .yz-glow { animation: none; }
+  .yz-toast { transform: translate(-50%, 0); }
+}

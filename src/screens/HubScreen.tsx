@@ -2,6 +2,7 @@ import type { ReactNode } from 'react';
 import { ChevronRight } from 'lucide-react';
 import { CardIcon } from '../components/ui/CardIcon';
 import { PlayingCard } from '../components/ui/PlayingCard';
+import { Die } from '../components/ui/Die';
 import { useAppStore, relativeDay, type GameId } from '../store/appStore';
 import { FEMKAMP_ROUNDS } from '../femkamp/rules';
 
@@ -110,8 +111,8 @@ export function HubScreen() {
           artBg="bg-accent-100"
           art={
             <div className="relative w-[60px] h-[50px]">
-              <Die pips={5} className="absolute left-0 top-0 -rotate-12" />
-              <Die pips={3} className="absolute right-0 bottom-0 rotate-[10deg]" />
+              <Die face={5} className="absolute! left-0 top-0 -rotate-12" />
+              <Die face={3} className="absolute! right-0 bottom-0 rotate-[10deg]" />
             </div>
           }
           title="Yatzy"
@@ -124,24 +125,3 @@ export function HubScreen() {
   );
 }
 
-const PIPS: Record<number, [number, number][]> = {
-  3: [[25, 25], [50, 50], [75, 75]],
-  5: [[25, 25], [75, 25], [50, 50], [25, 75], [75, 75]],
-};
-
-function Die({ pips, className = '' }: { pips: 3 | 5; className?: string }) {
-  return (
-    <span
-      aria-hidden
-      className={`block w-8 h-8 rounded-[8px] bg-neutral-100 border border-divider shadow-sm ${className}`}
-    >
-      {PIPS[pips].map(([x, y], i) => (
-        <i
-          key={i}
-          className="absolute w-[6px] h-[6px] rounded-full bg-ink -translate-x-1/2 -translate-y-1/2"
-          style={{ left: `${x}%`, top: `${y}%` }}
-        />
-      ))}
-    </span>
-  );
-}

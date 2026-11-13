@@ -5,7 +5,7 @@ import { BackButton } from '../components/BackButton';
 import { ConfettiBomb } from '../components/ConfettiBomb';
 import { useAppStore } from '../store/appStore';
 import { useYatzyStore } from './store';
-import { yatzyStandings } from './logic';
+import { yatzyStandings, playerColor } from './logic';
 
 export function YatzyResult() {
   const s = useYatzyStore();
@@ -15,7 +15,6 @@ export function YatzyResult() {
 
   const standings = yatzyStandings(s.players, s.sheets);
   const winners = standings.filter((r) => r.rank === 1);
-  const th = 'text-[11px] tracking-wider uppercase opacity-60 py-2 border-b border-divider';
   const td = 'py-2 border-b border-black/10';
 
   return (
@@ -45,26 +44,43 @@ export function YatzyResult() {
           </div>
         </div>
 
-        <div className="px-5 pt-2">
-          <table className="w-full border-collapse text-sm tabular-nums">
-            <thead>
-              <tr>
-                <th className={`${th} text-left`}>Plass</th>
-                <th className={`${th} text-left`}>Spiller</th>
-                <th className={`${th} text-right`}>Poeng</th>
-              </tr>
-            </thead>
-            <tbody>
-              {standings.map((r) => (
-                <tr key={r.id}>
-                  <td className={`${td} font-heading`}>{r.rank}.</td>
-                  <td className={td}>{r.name}</td>
-                  <td className={`${td} text-right font-bold`}>{r.total}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+        <div className="px-5 pt-4 flex items-end justify-center gap-2.5" aria-label="Pallen">
+          {[1, 0, 2]
+            .map((k) => standings[k])
+            .filter(Boolean)
+            .map((r) => {
+              const i = s.players.findIndex((p) => p.id === r.id);
+              const h = r.rank === 1 ? 120 : r.rank === 2 ? 88 : 64;
+              return (
+                <div key={r.id} className="flex-1 max-w-[110px] flex flex-col items-center gap-1.5">
+                  <span className="font-heading text-[15px] truncate max-w-full">{r.name}</span>
+                  <span className="text-[13px] font-bold tabular-nums opacity-80">{r.total} p</span>
+                  <div
+                    className="w-full rounded-t-[16px] grid place-items-start justify-center pt-2 font-heading text-[28px] text-bg"
+                    style={{ height: h, background: playerColor(i) }}
+                  >
+                    {r.rank}
+                  </div>
+                </div>
+              );
+            })}
         </div>
+
+        {standings.length > 3 && (
+          <div className="px-5 pt-3">
+            <table className="w-full border-collapse text-sm tabular-nums">
+              <tbody>
+                {standings.slice(3).map((r) => (
+                  <tr key={r.id}>
+                    <td className={`${td} font-heading w-12`}>{r.rank}.</td>
+                    <td className={td}>{r.name}</td>
+                    <td className={`${td} text-right font-bold`}>{r.total}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
 
         <div className="px-5 pt-6 mt-auto flex gap-2">
           <Button variant="secondary" className="flex-1 p-3.5 text-base" onClick={() => open('hub')}>

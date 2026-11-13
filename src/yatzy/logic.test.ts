@@ -1,5 +1,5 @@
 import { YATZY_CATEGORIES } from './rules';
-import { emptySheet, upperSum, bonus, total, canEdit, nextForced, turnIndex, yatzyStandings, isValid } from './logic';
+import { emptySheet, upperSum, bonus, total, canEdit, nextForced, turnIndex, yatzyStandings, isValid, parDiff } from './logic';
 
 function check(cond: boolean, msg: string) {
   if (!cond) throw new Error('Feilet: ' + msg);
@@ -38,3 +38,9 @@ const tie = yatzyStandings(players, { a: t, b: t });
 check(tie[0].rank === 1 && tie[1].rank === 1, 'delt plass');
 
 console.log('Alle Yatzy-tester bestått.');
+
+const par = emptySheet();
+par[0] = 4; // 4 enere: +1
+par[5] = 12; // 2 seksere: −6
+check(parDiff(par) === -5, 'skjema: +1 og −6');
+console.log('Skjema-test bestått.');
