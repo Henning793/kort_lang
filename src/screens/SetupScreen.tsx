@@ -1,7 +1,6 @@
 import { useGameStore } from '../store/gameStore';
-import { SetupHero, PlayerSetupList, StartButton, SectionLabel } from '../components/game/SetupParts';
+import { SetupHero, PlayerSetupList, StartButton } from '../components/game/SetupParts';
 import { playerColor } from '../components/game/colors';
-import { ROUNDS } from '../game/rounds';
 
 /** Små søyler for kort (lav) og lang (høy). */
 function Bars({ combo, scale = 1, light = false }: { combo: number[]; scale?: number; light?: boolean }) {
@@ -47,18 +46,6 @@ export function SetupScreen() {
       <p className="m-0 -mt-2 px-1 text-sm opacity-60">Du kan endre navn senere, men ikke antall spillere.</p>
 
       <StartButton players={s.players} onClick={s.startGame} />
-
-      <div className="flex flex-col gap-2">
-        <SectionLabel>Rundene</SectionLabel>
-        <div className="grid grid-cols-4 gap-2">
-          {ROUNDS.map((r, k) => (
-            <div key={r.label} className="rounded-card bg-surface flex flex-col items-center gap-1 py-2" title={r.label}>
-              <Bars combo={r.combo} scale={0.55} />
-              <span className="font-heading text-sm opacity-55">{k + 1}</span>
-            </div>
-          ))}
-        </div>
-      </div>
     </div>
   );
 }
