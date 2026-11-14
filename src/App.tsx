@@ -22,8 +22,8 @@ export default function App() {
   const view = useAppStore((s) => s.view);
 
   return (
-    <div className="min-h-screen bg-bg text-ink flex flex-col">
-      <div className="max-w-[480px] w-full mx-auto flex-1 flex flex-col min-h-screen">
+    <div className="min-h-dvh bg-bg text-ink flex flex-col pb-[env(safe-area-inset-bottom)]">
+      <div className="max-w-[480px] w-full mx-auto flex-1 flex flex-col">
         {view === 'hub' && <HubScreen />}
         {view === 'kortlang' && <KortOgLang />}
         {view === 'femkamp' && <FemkampGame />}
