@@ -15,7 +15,7 @@ export function TabSwitcher({
         <label
           key={t}
           className={`inline-flex items-center justify-center gap-1.5 cursor-pointer ${
-            large ? 'flex-1 py-2.5 text-base font-semibold' : 'px-3 py-1.5 text-[13px]'
+            large ? 'flex-1 py-2 text-base font-semibold' : 'px-3 py-1.5 text-[13px]'
           } ${
             tab === t ? 'bg-accent text-bg' : 'hover:bg-black/5'
           }`}

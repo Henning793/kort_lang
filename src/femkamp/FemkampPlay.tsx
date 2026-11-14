@@ -67,7 +67,7 @@ export function FemkampPlay() {
 
   return (
     <div className="flex flex-col flex-1">
-      <div className="flex items-center gap-2 px-5 pt-4 pb-2">
+      <div className="flex items-center gap-2 px-5 pt-2.5 pb-1.5">
         <BackButton />
         <div className="flex items-center gap-2 font-heading text-xl mr-auto">
           <CardIcon size={22} />
@@ -81,13 +81,7 @@ export function FemkampPlay() {
         </Button>
       </div>
 
-      <div className="px-5 pt-1 pb-3.5 flex flex-col gap-3">
-        <h2 className="m-0 text-[30px] leading-none">
-          Runde {r + 1} <span className="font-body text-lg opacity-50">av {FEMKAMP_NUM_ROUNDS}</span>
-        </h2>
-        {editingPast && (
-          <div className="text-[15px] font-semibold text-accent-700 -mt-1">Du retter en tidligere runde</div>
-        )}
+      <div className="px-5 pt-1 pb-3 flex flex-col gap-2.5">
         <div className="flex gap-2">
           {FEMKAMP_ROUNDS.map((x, k) => {
             const color = s.saved[k]
@@ -101,7 +95,7 @@ export function FemkampPlay() {
                 onClick={() => s.setView(k)}
                 disabled={k > s.current}
                 aria-label={`Runde ${k + 1}: ${x.name}`}
-                className={`flex-1 h-9 rounded-pill border-2 p-0 cursor-pointer disabled:cursor-default font-heading text-base ${color} ${
+                className={`flex-1 h-8 rounded-pill border-2 p-0 cursor-pointer disabled:cursor-default font-heading text-base ${color} ${
                   s.saved[k] || k === s.current ? 'text-bg' : 'opacity-50'
                 } ${k === r ? 'outline-[3px] outline-ink outline-offset-2' : ''}`}
               >
@@ -112,7 +106,7 @@ export function FemkampPlay() {
         </div>
         <div
           key={`deal-${r}`}
-          className="rounded-card px-4 py-4 flex flex-col gap-2.5 text-bg"
+          className="rounded-card px-4 py-2.5 flex flex-col gap-1.5 text-bg"
           style={{ background: playerColor(dealerIndex(r, s.players.length)) }}
         >
           <div className="flex items-center gap-3">
@@ -122,24 +116,30 @@ export function FemkampPlay() {
                   key={k}
                   glyph={def.glyph}
                   red={def.red}
-                  size="md"
                   className="yz-roll"
                   style={{ ['--r' as string]: `${(k - 1) * 10}deg`, animationDelay: `${k * 70}ms` }}
                 />
               ))}
             </div>
             <div className="min-w-0">
-              <div className="font-heading text-[24px] leading-tight">{def.name}</div>
+              <div className="font-heading text-[22px] leading-tight">
+                {def.name}
+              </div>
               <div className="text-[15px] opacity-90">
-                {s.players[dealerIndex(r, s.players.length)].name} deler ut
+                Runde {r + 1} av {FEMKAMP_NUM_ROUNDS} ·{' '}
+                {editingPast ? (
+                  <span className="font-semibold">du retter denne</span>
+                ) : (
+                  <>{s.players[dealerIndex(r, s.players.length)].name} deler ut</>
+                )}
               </div>
             </div>
           </div>
-          <p className="m-0 text-base leading-snug opacity-95">{def.desc}</p>
+          <p className="m-0 text-[15px] leading-snug opacity-95">{def.desc}</p>
         </div>
       </div>
 
-      <div className="mx-5 mb-4">
+      <div className="mx-5 mb-3">
         <TabSwitcher tab={s.tab} onChange={s.setTab} large />
       </div>
 
@@ -215,13 +215,13 @@ function CountEntry({ onToast }: { onToast: ShowToast }) {
   const lead = leaders(s.players, s);
 
   return (
-    <div className="px-5 pb-7 flex flex-col gap-4 flex-1">
-      <div className="flex flex-col gap-2.5">
+    <div className="px-5 pb-4 flex flex-col gap-2.5 flex-1">
+      <div className="flex flex-col gap-2">
         {s.players.map((p, i) => {
           const pts = roundPoints(s, r, i);
           return (
-            <div key={p.id} className="flex items-center gap-3 pl-3 pr-2.5 py-3 rounded-card bg-surface">
-              <PlayerBadge name={p.name} index={i} size={40} crown={lead.includes(i)} />
+            <div key={p.id} className="flex items-center gap-3 pl-3 pr-2.5 py-1.5 rounded-card bg-surface">
+              <PlayerBadge name={p.name} index={i} size={36} crown={lead.includes(i)} />
               <div className="flex-1 min-w-0 flex flex-col">
                 <PlayerName name={p.name} dealer={i === dIdx} />
                 <span className="text-sm opacity-60">{def.unit}</span>
@@ -249,7 +249,7 @@ function CountEntry({ onToast }: { onToast: ShowToast }) {
         {check.text}
       </div>
 
-      <Button variant="primary" block onClick={save} className="text-lg! py-4! mt-auto">
+      <Button variant="primary" block onClick={save} className="text-lg! py-3.5! mt-auto">
         {saveLabel(r, s.current)}
       </Button>
     </div>
@@ -268,11 +268,11 @@ function KabalEntry({ onToast }: { onToast: ShowToast }) {
   const lead = leaders(s.players, s);
 
   return (
-    <div className="px-5 pb-7 flex flex-col gap-4 flex-1">
-      <div className="flex flex-col gap-2.5">
+    <div className="px-5 pb-4 flex flex-col gap-2.5 flex-1">
+      <div className="flex flex-col gap-2">
         {s.players.map((p, i) => (
-          <div key={p.id} className="flex items-center gap-3 pl-3 pr-2.5 py-3 rounded-card bg-surface">
-            <PlayerBadge name={p.name} index={i} size={40} crown={lead.includes(i)} />
+          <div key={p.id} className="flex items-center gap-3 pl-3 pr-2.5 py-1.5 rounded-card bg-surface">
+            <PlayerBadge name={p.name} index={i} size={36} crown={lead.includes(i)} />
             <div className="flex-1 min-w-0 flex flex-col">
               <PlayerName name={p.name} dealer={i === dIdx} />
               <span className="text-sm opacity-60 tabular-nums">
@@ -294,7 +294,7 @@ function KabalEntry({ onToast }: { onToast: ShowToast }) {
                     s.adjustPass(i, 1);
                     onToast({ text: '+1', sub: `${p.name} måtte passe`, color: playerColor(i) });
                   }}
-                  className="flex items-center gap-2 text-bg rounded-pill px-5 py-3 font-heading text-lg active:scale-95 transition-transform cursor-pointer"
+                  className="flex items-center gap-2 text-bg rounded-pill px-5 py-2.5 font-heading text-lg active:scale-95 transition-transform cursor-pointer"
                   style={{ background: playerColor(i) }}
                 >
                   Pass
@@ -315,12 +315,9 @@ function KabalEntry({ onToast }: { onToast: ShowToast }) {
 
       {live ? (
         <>
-          <div className="text-[15px] opacity-65 px-1">
-            Hver gang noen ikke kan legge på, trykker de på knappen sin. Poengene telles fortløpende.
-          </div>
           <button
             onClick={() => s.setKabalPhase('count')}
-            className="w-full mt-auto bg-accent2 text-bg rounded-pill p-4 font-heading text-lg hover:bg-accent2-600 cursor-pointer"
+            className="w-full mt-auto bg-accent2 text-bg rounded-pill px-4 py-3.5 font-heading text-lg hover:bg-accent2-600 cursor-pointer"
           >
             Noen er ferdig – tell kort
           </button>
@@ -344,10 +341,10 @@ function KabalEntry({ onToast }: { onToast: ShowToast }) {
             )}
           </div>
           <div className="flex gap-2 mt-auto">
-            <Button variant="secondary" onClick={() => s.setKabalPhase('live')} className="text-lg! px-5 py-4">
+            <Button variant="secondary" onClick={() => s.setKabalPhase('live')} className="text-lg! px-5 py-3!">
               Tilbake
             </Button>
-            <Button variant="primary" onClick={save} disabled={!canSave} className="flex-1 text-lg! py-4!">
+            <Button variant="primary" onClick={save} disabled={!canSave} className="flex-1 text-lg! py-3.5!">
               {saveLabel(r, s.current)}
             </Button>
           </div>
@@ -362,7 +359,7 @@ function StillingTab() {
   const scores = femkampScores(s.players, s);
   const standings = computeStandings(s.players, scores, s.current);
   return (
-    <div className="px-5 pb-7 flex flex-col gap-3">
+    <div className="px-5 pb-4 flex flex-col gap-3">
       <FemkampTable
         standings={standings}
         scores={scores}
