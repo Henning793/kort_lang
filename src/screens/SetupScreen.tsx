@@ -1,71 +1,63 @@
-import { Plus, X } from 'lucide-react';
 import { useGameStore } from '../store/gameStore';
-import { Input } from '../components/ui/Input';
-import { Button } from '../components/ui/Button';
-import { CardIcon } from '../components/ui/CardIcon';
-import { BackButton } from '../components/BackButton';
+import { SetupHero, PlayerSetupList, StartButton, SectionLabel } from '../components/game/SetupParts';
+import { playerColor } from '../components/game/colors';
+import { ROUNDS } from '../game/rounds';
+
+/** Små søyler for kort (lav) og lang (høy). */
+function Bars({ combo, scale = 1, light = false }: { combo: number[]; scale?: number; light?: boolean }) {
+  return (
+    <span className="inline-flex items-end gap-[3px]" style={{ height: 44 * scale }}>
+      {combo.map((h, i) => (
+        <i
+          key={i}
+          className={`block rounded-[3px] border-[1.5px] ${light ? 'bg-white/85 border-white' : 'bg-accent-200 border-accent'}`}
+          style={{ height: h * scale, width: 14 * scale }}
+        />
+      ))}
+    </span>
+  );
+}
 
 export function SetupScreen() {
-  const players = useGameStore((s) => s.players);
-  const addPlayer = useGameStore((s) => s.addPlayer);
-  const removePlayer = useGameStore((s) => s.removePlayer);
-  const updateName = useGameStore((s) => s.updateName);
-  const startGame = useGameStore((s) => s.startGame);
-
-  const canAdd = players.length < 8;
-  const canRemove = players.length > 2;
+  const s = useGameStore();
+  const n = s.players.length;
 
   return (
-    <div className="px-5 pt-4 pb-10 flex flex-col gap-6">
-      <div className="flex items-center gap-2.5">
-        <BackButton />
-        <CardIcon size={26} />
-        <h1 className="text-[28px] m-0">Kort og lang</h1>
-      </div>
+    <div className="px-5 pt-3 pb-10 flex flex-col gap-5">
+      <SetupHero
+        color={playerColor(0)}
+        title="Kort og lang"
+        tagline="Sju runder. Færrest poeng vinner."
+        art={
+          <span className="yz-roll inline-block" style={{ ['--r' as string]: '-8deg' }}>
+            <Bars combo={[26, 44, 44]} scale={1.15} light />
+          </span>
+        }
+      />
 
-      <p className="m-0 opacity-75 text-sm">
-        Legg til spillerne som skal være med. Du kan endre navn, men ikke antall spillere etter at
-        spillet er startet.
-      </p>
+      <PlayerSetupList
+        players={s.players}
+        onName={s.updateName}
+        onRemove={s.removePlayer}
+        onAdd={s.addPlayer}
+        canAdd={n < 8}
+        canRemove={n > 2}
+        firstLabel="Stokker i runde 1"
+      />
+      <p className="m-0 -mt-2 px-1 text-sm opacity-60">Du kan endre navn senere, men ikke antall spillere.</p>
 
-      <div className="flex flex-col gap-2.5">
-        {players.map((p, i) => (
-          <div key={p.id} className="flex items-center gap-2.5">
-            <div className="w-[30px] h-[30px] flex-none rounded-full bg-accent2-100 text-accent2-800 flex items-center justify-center font-heading text-[13px]">
-              {i + 1}
+      <StartButton players={s.players} onClick={s.startGame} />
+
+      <div className="flex flex-col gap-2">
+        <SectionLabel>Rundene</SectionLabel>
+        <div className="grid grid-cols-4 gap-2">
+          {ROUNDS.map((r, k) => (
+            <div key={r.label} className="rounded-card bg-surface flex flex-col items-center gap-1 py-2" title={r.label}>
+              <Bars combo={r.combo} scale={0.55} />
+              <span className="font-heading text-sm opacity-55">{k + 1}</span>
             </div>
-            <Input
-              placeholder={`Spiller ${i + 1}`}
-              value={p.name}
-              onChange={(e) => updateName(p.id, e.target.value)}
-              className="flex-1"
-            />
-            <Button
-              variant="icon"
-              onClick={() => removePlayer(p.id)}
-              disabled={!canRemove}
-              aria-label="Fjern spiller"
-            >
-              <X size={16} strokeWidth={2.75} />
-            </Button>
-          </div>
-        ))}
-      </div>
-
-      <Button variant="secondary" block onClick={addPlayer} disabled={!canAdd} className="border-dashed">
-        <Plus size={16} strokeWidth={2.75} />
-        Legg til spiller
-      </Button>
-
-      <div className="mt-2">
-        <Button variant="primary" block onClick={startGame} className="text-[17px] p-3.5">
-          Start spill
-        </Button>
-      </div>
-
-      <div className="mt-2 px-4 py-3.5 bg-surface rounded-card text-[12.5px] opacity-80">
-        7 runder: kort+kort · kort+lang · lang+lang · kort+kort+kort · kort+kort+lang · kort+lang+lang
-        · lang+lang+lang. Færrest poeng vinner.
+          ))}
+        </div>
       </div>
     </div>
   );

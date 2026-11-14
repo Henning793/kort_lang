@@ -1,7 +1,6 @@
-import { Plus, X } from 'lucide-react';
-import { Input } from '../components/ui/Input';
-import { Button } from '../components/ui/Button';
-import { BackButton } from '../components/BackButton';
+import { PlayingCard } from '../components/ui/PlayingCard';
+import { SetupHero, PlayerSetupList, StartButton, SectionLabel } from '../components/game/SetupParts';
+import { playerColor } from '../components/game/colors';
 import { useFemkampStore } from './store';
 import {
   FEMKAMP_ROUNDS,
@@ -11,83 +10,74 @@ import {
   cardsRemoved,
 } from './rules';
 
-export function FemkampSetup() {
-  const players = useFemkampStore((s) => s.players);
-  const addPlayer = useFemkampStore((s) => s.addPlayer);
-  const removePlayer = useFemkampStore((s) => s.removePlayer);
-  const updateName = useFemkampStore((s) => s.updateName);
-  const startGame = useFemkampStore((s) => s.startGame);
+function pointText(r: (typeof FEMKAMP_ROUNDS)[number]): string {
+  if (r.kind === 'kabal') return '1 p per pass og kort igjen';
+  const m = r.mult ?? 1;
+  return `${m > 0 ? '+' : '−'}${Math.abs(m)} p per ${r.unit === 'damer' ? 'dame' : r.unit}`;
+}
 
-  const n = players.length;
+export function FemkampSetup() {
+  const s = useFemkampStore();
+  const n = s.players.length;
   const removed = cardsRemoved(n);
 
   return (
-    <div className="px-5 pt-4 pb-10 flex flex-col gap-6">
-      <div className="flex items-center gap-1.5">
-        <BackButton />
-        <h1 className="text-[28px] m-0">Femkamp</h1>
-      </div>
-
-      <p className="m-0 opacity-75 text-sm">
-        Legg inn spillerne i den rekkefølgen dere sitter. Første spiller deler ut i runde 1, så går det
-        på rundgang.
-      </p>
-
-      <div className="flex flex-col gap-2.5">
-        {players.map((p, i) => (
-          <div key={p.id} className="flex items-center gap-2.5">
-            <div className="w-[30px] h-[30px] flex-none rounded-full bg-accent2-100 text-accent2-800 flex items-center justify-center font-heading text-[13px]">
-              {i + 1}
-            </div>
-            <Input
-              placeholder={`Spiller ${i + 1}`}
-              value={p.name}
-              onChange={(e) => updateName(p.id, e.target.value)}
-              className="flex-1"
-            />
-            <Button
-              variant="icon"
-              onClick={() => removePlayer(p.id)}
-              disabled={n <= FEMKAMP_MIN_PLAYERS}
-              aria-label="Fjern spiller"
-            >
-              <X size={16} strokeWidth={2.75} />
-            </Button>
+    <div className="px-5 pt-3 pb-10 flex flex-col gap-5">
+      <SetupHero
+        color={playerColor(2)}
+        title="Femkamp"
+        tagline="Fem runder med ulike mål. Færrest poeng vinner."
+        art={
+          <div className="relative w-[64px] h-[52px] yz-roll">
+            {FEMKAMP_ROUNDS.map((r, k) => (
+              <PlayingCard
+                key={r.name}
+                glyph={r.glyph}
+                red={r.red}
+                size="md"
+                className="absolute bottom-0 left-1/2"
+                style={{
+                  transform: `translateX(-50%) rotate(${(k - 2) * 14}deg)`,
+                  transformOrigin: '50% 120%',
+                }}
+              />
+            ))}
           </div>
-        ))}
-      </div>
+        }
+      />
 
-      <Button
-        variant="secondary"
-        block
-        onClick={addPlayer}
-        disabled={n >= FEMKAMP_MAX_PLAYERS}
-        className="border-dashed"
-      >
-        <Plus size={16} strokeWidth={2.75} />
-        Legg til spiller
-      </Button>
+      <PlayerSetupList
+        players={s.players}
+        onName={s.updateName}
+        onRemove={s.removePlayer}
+        onAdd={s.addPlayer}
+        canAdd={n < FEMKAMP_MAX_PLAYERS}
+        canRemove={n > FEMKAMP_MIN_PLAYERS}
+        firstLabel="Deler ut i runde 1"
+      />
+      <p className="m-0 -mt-2 px-1 text-sm opacity-60">Legg inn spillerne i den rekkefølgen dere sitter.</p>
 
-      <div className="mt-2">
-        <Button variant="primary" block onClick={startGame} className="text-[17px] p-3.5">
-          Start spill
-        </Button>
-      </div>
+      <StartButton players={s.players} onClick={s.startGame} />
 
-      <div className="mt-2 px-4 py-3.5 bg-surface rounded-card text-[13px] flex flex-col gap-2">
-        <div>
-          <b>Fem runder, minst tre spillere.</b> Færrest poeng til slutt vinner.
-        </div>
-        <ol className="m-0 pl-5 flex flex-col gap-0.5 list-decimal">
-          {FEMKAMP_ROUNDS.map((r) => (
-            <li key={r.name}>{r.name}</li>
+      <div className="flex flex-col gap-2">
+        <SectionLabel>Rundene</SectionLabel>
+        <div className="rounded-card bg-surface p-2 flex flex-col">
+          {FEMKAMP_ROUNDS.map((r, k) => (
+            <div key={r.name} className="flex items-center gap-3 px-2 py-1.5">
+              <span className="w-6 font-heading text-base opacity-45 text-center">{k + 1}</span>
+              <PlayingCard glyph={r.glyph} red={r.red} />
+              <span className="font-heading text-base flex-1">{r.name}</span>
+              <span className={`text-sm font-semibold ${(r.mult ?? 1) < 0 ? 'text-accent2-700' : 'opacity-60'}`}>
+                {pointText(r)}
+              </span>
+            </div>
           ))}
-        </ol>
-        <div className="opacity-75">
-          {removed > 0
-            ? `Med ${n} spillere tar dere ut ${removed} kort før utdeling, så får alle ${cardsPerPlayer(n)} kort.`
-            : `Med ${n} spillere får alle ${cardsPerPlayer(n)} kort.`}
         </div>
+        <p className="m-0 px-1 text-sm opacity-65">
+          {removed > 0
+            ? `Med ${n} spillere tar dere ut ${removed} kort før utdeling, så alle får ${cardsPerPlayer(n)} kort.`
+            : `Med ${n} spillere får alle ${cardsPerPlayer(n)} kort.`}
+        </p>
       </div>
     </div>
   );
