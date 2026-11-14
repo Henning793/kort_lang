@@ -14,7 +14,6 @@ import { FEMKAMP_ROUNDS, FEMKAMP_NUM_ROUNDS, cardsPerPlayer } from './rules';
 import { roundPoints, checkCount, kabalFinishers, femkampScores, fmtPoints } from './logic';
 import { RulesSheet } from './RulesSheet';
 import { PlayerBadge } from '../components/game/PlayerBadge';
-import { TurnBanner } from '../components/game/TurnBanner';
 import { GameToast } from '../components/game/GameToast';
 import { useGameToast } from '../components/game/useGameToast';
 import { playerColor, GOLD } from '../components/game/colors';
@@ -27,9 +26,9 @@ function pointsClass(p: number) {
 
 function PlayerName({ name, dealer }: { name: string; dealer: boolean }) {
   return (
-    <span className="relative self-start font-heading text-[15px]">
-      {name}
-      {dealer && <DealerMark size={14} style={{ top: -9, right: -12 }} />}
+    <span className="relative self-start max-w-full font-heading text-lg leading-tight">
+      <span className="block truncate">{name}</span>
+      {dealer && <DealerMark size={16} style={{ top: -10, right: -14 }} />}
     </span>
   );
 }
@@ -66,39 +65,24 @@ export function FemkampPlay() {
   const def = FEMKAMP_ROUNDS[r];
   const editingPast = r < s.current;
 
-  const tag =
-    def.mult === -1 ? (
-      <span className="text-[11px] font-body font-semibold px-2 py-0.5 rounded-pill bg-accent2-100 text-accent2-800">
-        Nå er stikk bra
-      </span>
-    ) : def.mult === 4 ? (
-      <span className="text-[11px] font-body font-semibold px-2 py-0.5 rounded-pill bg-accent-100 text-accent-800">
-        4 p per dame
-      </span>
-    ) : null;
-
   return (
     <div className="flex flex-col flex-1">
-      <div className="flex items-center gap-2 px-5 pt-4 pb-2">
+      <div className="flex items-center gap-2 px-5 pt-2.5 pb-1.5">
         <BackButton />
-        <div className="flex items-center gap-2 font-heading text-[17px] mr-auto">
-          <CardIcon size={18} />
+        <div className="flex items-center gap-2 font-heading text-xl mr-auto">
+          <CardIcon size={22} />
           Femkamp
         </div>
-        <Button variant="ghost" onClick={() => setRulesOpen(true)}>
+        <Button variant="ghost" onClick={() => setRulesOpen(true)} className="text-base! px-2 py-2">
           Regler
         </Button>
-        <Button variant="ghost" onClick={() => setConfirmOpen(true)}>
+        <Button variant="ghost" onClick={() => setConfirmOpen(true)} className="text-base! px-2 py-2">
           Nytt spill
         </Button>
       </div>
 
-      <div className="px-5 pt-1 pb-3.5 flex flex-col gap-3">
-        <h2 className="m-0 text-[23px]">
-          Runde {r + 1} <span className="font-body text-sm opacity-50">av {FEMKAMP_NUM_ROUNDS}</span>
-          {editingPast && <span className="font-body text-sm opacity-50"> · retter tidligere runde</span>}
-        </h2>
-        <div className="flex gap-1.5">
+      <div className="px-5 pt-1 pb-3 flex flex-col gap-2.5">
+        <div className="flex gap-2">
           {FEMKAMP_ROUNDS.map((x, k) => {
             const color = s.saved[k]
               ? 'bg-accent2-500 border-accent2-500'
@@ -111,41 +95,52 @@ export function FemkampPlay() {
                 onClick={() => s.setView(k)}
                 disabled={k > s.current}
                 aria-label={`Runde ${k + 1}: ${x.name}`}
-                className={`flex-1 h-2 rounded-pill border-[1.5px] p-0 cursor-pointer disabled:cursor-default ${color} ${
-                  k === r ? 'outline-2 outline-ink outline-offset-2' : ''
-                }`}
-              />
+                className={`flex-1 h-8 rounded-pill border-2 p-0 cursor-pointer disabled:cursor-default font-heading text-base ${color} ${
+                  s.saved[k] || k === s.current ? 'text-bg' : 'opacity-50'
+                } ${k === r ? 'outline-[3px] outline-ink outline-offset-2' : ''}`}
+              >
+                {k + 1}
+              </button>
             );
           })}
         </div>
-        <TurnBanner
-          animKey={`deal-${r}`}
-          color={playerColor(dealerIndex(r, s.players.length))}
-          title={`${s.players[dealerIndex(r, s.players.length)].name} deler ut`}
-          subtitle={`Runde ${r + 1} · ${def.name}`}
-          art={[0, 1, 2].map((k) => (
-            <PlayingCard
-              key={k}
-              glyph={FEMKAMP_ROUNDS[r].glyph}
-              red={FEMKAMP_ROUNDS[r].red}
-              className="yz-roll"
-              style={{ ['--r' as string]: `${(k - 1) * 10}deg`, animationDelay: `${k * 70}ms` }}
-            />
-          ))}
-        />
-        <div className="flex items-center gap-3 bg-surface px-3.5 py-3 rounded-card">
-          <PlayingCard glyph={def.glyph} red={def.red} size="md" />
-          <div className="min-w-0">
-            <div className="font-heading text-base flex items-center gap-2 flex-wrap">
-              {def.name} {tag}
+        <div
+          key={`deal-${r}`}
+          className="rounded-card px-4 py-2.5 flex flex-col gap-1.5 text-bg"
+          style={{ background: playerColor(dealerIndex(r, s.players.length)) }}
+        >
+          <div className="flex items-center gap-3">
+            <div className="flex gap-1">
+              {[0, 1, 2].map((k) => (
+                <PlayingCard
+                  key={k}
+                  glyph={def.glyph}
+                  red={def.red}
+                  className="yz-roll"
+                  style={{ ['--r' as string]: `${(k - 1) * 10}deg`, animationDelay: `${k * 70}ms` }}
+                />
+              ))}
             </div>
-            <p className="m-0 text-[13px] opacity-70">{def.desc}</p>
+            <div className="min-w-0">
+              <div className="font-heading text-[22px] leading-tight">
+                {def.name}
+              </div>
+              <div className="text-[15px] opacity-90">
+                Runde {r + 1} av {FEMKAMP_NUM_ROUNDS} ·{' '}
+                {editingPast ? (
+                  <span className="font-semibold">du retter denne</span>
+                ) : (
+                  <>{s.players[dealerIndex(r, s.players.length)].name} deler ut</>
+                )}
+              </div>
+            </div>
           </div>
+          <p className="m-0 text-[15px] leading-snug opacity-95">{def.desc}</p>
         </div>
       </div>
 
-      <div className="mx-5 mb-4">
-        <TabSwitcher tab={s.tab} onChange={s.setTab} />
+      <div className="mx-5 mb-3">
+        <TabSwitcher tab={s.tab} onChange={s.setTab} large />
       </div>
 
       {s.tab === 'poeng' ? (
@@ -220,19 +215,19 @@ function CountEntry({ onToast }: { onToast: ShowToast }) {
   const lead = leaders(s.players, s);
 
   return (
-    <div className="px-5 pb-7 flex flex-col gap-4 flex-1">
+    <div className="px-5 pb-4 flex flex-col gap-2.5 flex-1">
       <div className="flex flex-col gap-2">
         {s.players.map((p, i) => {
           const pts = roundPoints(s, r, i);
           return (
-            <div key={p.id} className="flex items-center gap-2.5 pl-3.5 pr-2.5 py-2 rounded-card bg-surface">
-              <PlayerBadge name={p.name} index={i} size={30} crown={lead.includes(i)} />
+            <div key={p.id} className="flex items-center gap-3 pl-3 pr-2.5 py-1.5 rounded-card bg-surface">
+              <PlayerBadge name={p.name} index={i} size={36} crown={lead.includes(i)} />
               <div className="flex-1 min-w-0 flex flex-col">
                 <PlayerName name={p.name} dealer={i === dIdx} />
-                <span className="text-xs opacity-60">{def.unit}</span>
+                <span className="text-sm opacity-60">{def.unit}</span>
               </div>
-              <Stepper value={counts[i]} onChange={(d) => s.adjustCount(r, i, d)} label={def.unit ?? ''} />
-              <span className={`min-w-[46px] text-right font-bold text-sm tabular-nums ${pointsClass(pts)}`}>
+              <Stepper value={counts[i]} onChange={(d) => s.adjustCount(r, i, d)} label={def.unit ?? ''} size="lg" />
+              <span className={`min-w-[52px] text-right font-bold text-lg tabular-nums ${pointsClass(pts)}`}>
                 {pts > 0 ? '+' : ''}
                 {fmtPoints(pts)} p
               </span>
@@ -242,7 +237,7 @@ function CountEntry({ onToast }: { onToast: ShowToast }) {
       </div>
 
       <div
-        className={`text-[13px] flex items-center gap-1.5 px-1 ${
+        className={`text-base flex items-center gap-2 px-1 ${
           check.state === 'ok'
             ? 'text-accent2-700'
             : check.state === 'over'
@@ -250,11 +245,11 @@ function CountEntry({ onToast }: { onToast: ShowToast }) {
               : 'opacity-60'
         }`}
       >
-        {check.state === 'ok' && <Check size={15} strokeWidth={3} />}
+        {check.state === 'ok' && <Check size={18} strokeWidth={3} />}
         {check.text}
       </div>
 
-      <Button variant="primary" block onClick={save} className="text-base p-3.5 mt-auto">
+      <Button variant="primary" block onClick={save} className="text-lg! py-3.5! mt-auto">
         {saveLabel(r, s.current)}
       </Button>
     </div>
@@ -273,15 +268,15 @@ function KabalEntry({ onToast }: { onToast: ShowToast }) {
   const lead = leaders(s.players, s);
 
   return (
-    <div className="px-5 pb-7 flex flex-col gap-4 flex-1">
+    <div className="px-5 pb-4 flex flex-col gap-2.5 flex-1">
       <div className="flex flex-col gap-2">
         {s.players.map((p, i) => (
-          <div key={p.id} className="flex items-center gap-2.5 pl-3.5 pr-2.5 py-2 rounded-card bg-surface">
-            <PlayerBadge name={p.name} index={i} size={30} crown={lead.includes(i)} />
+          <div key={p.id} className="flex items-center gap-3 pl-3 pr-2.5 py-1.5 rounded-card bg-surface">
+            <PlayerBadge name={p.name} index={i} size={36} crown={lead.includes(i)} />
             <div className="flex-1 min-w-0 flex flex-col">
               <PlayerName name={p.name} dealer={i === dIdx} />
-              <span className="text-xs opacity-60 tabular-nums">
-                {live ? `${k.pass[i]} pass` : `${k.pass[i]} pass + ${k.left[i]} kort`}
+              <span className="text-sm opacity-60 tabular-nums">
+                {k.pass[i]} pass
               </span>
             </div>
             {live ? (
@@ -290,26 +285,26 @@ function KabalEntry({ onToast }: { onToast: ShowToast }) {
                   onClick={() => s.adjustPass(i, -1)}
                   disabled={k.pass[i] === 0}
                   aria-label={`Angre pass for ${p.name}`}
-                  className="w-9 h-9 grid place-items-center rounded-full border border-divider opacity-70 disabled:opacity-25 cursor-pointer disabled:cursor-not-allowed"
+                  className="w-11 h-11 grid place-items-center rounded-full border border-divider opacity-70 disabled:opacity-25 cursor-pointer disabled:cursor-not-allowed"
                 >
-                  <Undo2 size={15} strokeWidth={2.5} />
+                  <Undo2 size={19} strokeWidth={2.5} />
                 </button>
                 <button
                   onClick={() => {
                     s.adjustPass(i, 1);
                     onToast({ text: '+1', sub: `${p.name} måtte passe`, color: playerColor(i) });
                   }}
-                  className="flex items-center gap-1.5 text-bg rounded-pill px-3.5 py-2 font-heading text-sm active:scale-95 transition-transform cursor-pointer"
+                  className="flex items-center gap-2 text-bg rounded-pill px-5 py-2.5 font-heading text-lg active:scale-95 transition-transform cursor-pointer"
                   style={{ background: playerColor(i) }}
                 >
                   Pass
-                  <span className="bg-white/25 rounded-pill px-1.5 font-body font-bold text-[13px]">+1</span>
+                  <span className="bg-white/25 rounded-pill px-2 font-body font-bold text-[15px]">+1</span>
                 </button>
               </>
             ) : (
               <>
-                <Stepper value={k.left[i]} onChange={(d) => s.adjustLeft(i, d)} label="kort" />
-                <span className="min-w-[46px] text-right font-bold text-sm tabular-nums text-accent-600">
+                <Stepper value={k.left[i]} onChange={(d) => s.adjustLeft(i, d)} label="kort" size="lg" />
+                <span className="min-w-[52px] text-right font-bold text-lg tabular-nums text-accent-600">
                   +{roundPoints(s, r, i)} p
                 </span>
               </>
@@ -320,12 +315,9 @@ function KabalEntry({ onToast }: { onToast: ShowToast }) {
 
       {live ? (
         <>
-          <div className="text-[13px] opacity-60 px-1">
-            Hver gang noen ikke kan legge på, trykker de på knappen sin. Poengene telles fortløpende.
-          </div>
           <button
             onClick={() => s.setKabalPhase('count')}
-            className="w-full mt-auto bg-accent2 text-bg rounded-pill p-3.5 font-heading text-base hover:bg-accent2-600 cursor-pointer"
+            className="w-full mt-auto bg-accent2 text-bg rounded-pill px-4 py-3.5 font-heading text-lg hover:bg-accent2-600 cursor-pointer"
           >
             Noen er ferdig – tell kort
           </button>
@@ -333,13 +325,13 @@ function KabalEntry({ onToast }: { onToast: ShowToast }) {
       ) : (
         <>
           <div
-            className={`text-[13px] flex items-center gap-1.5 px-1 ${
+            className={`text-base flex items-center gap-2 px-1 ${
               canSave ? 'text-accent2-700' : 'text-accent-700 font-semibold'
             }`}
           >
             {canSave ? (
               <>
-                <Check size={15} strokeWidth={3} />
+                <Check size={18} strokeWidth={3} />
                 {s.players[finishers[0]].name} vant runden
               </>
             ) : finishers.length === 0 ? (
@@ -349,10 +341,10 @@ function KabalEntry({ onToast }: { onToast: ShowToast }) {
             )}
           </div>
           <div className="flex gap-2 mt-auto">
-            <Button variant="secondary" onClick={() => s.setKabalPhase('live')}>
+            <Button variant="secondary" onClick={() => s.setKabalPhase('live')} className="text-lg! px-5 py-3!">
               Tilbake
             </Button>
-            <Button variant="primary" onClick={save} disabled={!canSave} className="flex-1 text-base p-3.5">
+            <Button variant="primary" onClick={save} disabled={!canSave} className="flex-1 text-lg! py-3.5!">
               {saveLabel(r, s.current)}
             </Button>
           </div>
@@ -367,14 +359,14 @@ function StillingTab() {
   const scores = femkampScores(s.players, s);
   const standings = computeStandings(s.players, scores, s.current);
   return (
-    <div className="px-5 pb-7 flex flex-col gap-3">
+    <div className="px-5 pb-4 flex flex-col gap-3">
       <FemkampTable
         standings={standings}
         scores={scores}
         showDealer
         indexOf={(id) => s.players.findIndex((p) => p.id === id)}
       />
-      <p className="m-0 text-xs opacity-60">Trykk på en fullført prikk over for å rette en tidligere runde.</p>
+      <p className="m-0 text-sm opacity-60">Trykk på et fullført rundenummer over for å rette en tidligere runde.</p>
     </div>
   );
 }

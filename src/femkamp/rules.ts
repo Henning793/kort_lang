@@ -51,7 +51,7 @@ export const FEMKAMP_ROUNDS: FemkampRound[] = [
     glyph: '7',
     red: true,
     kind: 'kabal',
-    desc: 'Start med en 7-er og bygg opp og ned i hver farge. 1 poeng per pass, pluss 1 per kort du sitter igjen med når noen er ferdig.',
+    desc: 'Start på 7-ere, bygg opp og ned. 1 poeng per pass, pluss 1 per kort igjen når noen er ferdig.',
   },
   {
     name: 'Ta stikk',
