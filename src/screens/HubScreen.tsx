@@ -5,6 +5,7 @@ import { PlayingCard } from '../components/ui/PlayingCard';
 import { Die } from '../components/ui/Die';
 import { useAppStore, relativeDay, type GameId } from '../store/appStore';
 import { FEMKAMP_ROUNDS } from '../femkamp/rules';
+import { AnimalDie } from '../dice/DiceFace';
 
 function GameCard({
   game,
@@ -116,9 +117,22 @@ export function HubScreen() {
             </div>
           }
           title="Yatzy"
-          badge="Ny"
           text="Fem terninger, tre kast. Høyest poengsum vinner."
-          tags={['Fri eller tvungen', '1–8 spillere']}
+          tags={['Trill i appen', '1–8 spillere']}
+        />
+        <GameCard
+          game="dyreyatzy"
+          artBg="bg-accent2-100"
+          art={
+            <div className="relative w-[60px] h-[50px]">
+              <AnimalDie face={1} className="absolute! left-0 top-0 -rotate-12" />
+              <AnimalDie face={6} className="absolute! right-0 bottom-0 rotate-[10deg]" />
+            </div>
+          }
+          title="Dyreyatzy"
+          badge="Ny"
+          text="Fem dyreterninger, tre kast. Høyest poengsum vinner."
+          tags={['Trill i appen', '1–8 spillere']}
         />
       </div>
     </div>

@@ -4,16 +4,18 @@ import { Button } from '../components/ui/Button';
 import { BackButton } from '../components/BackButton';
 import { ConfettiBomb } from '../components/ConfettiBomb';
 import { useAppStore } from '../store/appStore';
-import { useYatzyStore } from './store';
-import { yatzyStandings, playerColor } from './logic';
+import { playerColor } from '../components/game/colors';
+import { useDiceGame } from './context';
+import { standings as getStandings } from './logic';
 
-export function YatzyResult() {
-  const s = useYatzyStore();
+export function DiceResult() {
+  const { def, useStore } = useDiceGame();
+  const s = useStore();
   const open = useAppStore((a) => a.open);
   const [shaking, setShaking] = useState(false);
   const winnerCardRef = useRef<HTMLDivElement>(null);
 
-  const standings = yatzyStandings(s.players, s.sheets);
+  const standings = getStandings(def, s.players, s.sheets);
   const winners = standings.filter((r) => r.rank === 1);
   const td = 'py-2 border-b border-black/10';
 
@@ -28,7 +30,7 @@ export function YatzyResult() {
           <BackButton />
           <div className="flex items-center gap-2 font-heading text-[17px]">
             <Dices size={18} strokeWidth={2.5} color="#c67139" />
-            Yatzy
+            {def.title}
           </div>
         </div>
 
