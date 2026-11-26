@@ -6,9 +6,9 @@ import { playerColor } from '../components/game/colors';
 
 /**
  * Hvor mange dyr som må til på de seks dyrerutene for å få bonus.
- * Arket sier ikke noe om dette, så 15 er valgt. Endre her for å bruke en annen grense.
+ * 12 dyr eller mer gir 10 poeng i bonus.
  */
-export const DYRE_BONUS_LIMIT = 15;
+export const DYRE_BONUS_LIMIT = 12;
 export const DYRE_BONUS = 10;
 
 const kinds = (d: number[]) => counts(d).slice(1);
