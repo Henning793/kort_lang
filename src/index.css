@@ -142,7 +142,7 @@ h4 {
 }
 .dice-rattle { animation: diceRattle 0.18s linear infinite; }
 @keyframes diceShakeMeter { from { width: 0; } to { width: 100%; } }
-.dice-shake-meter { animation: diceShakeMeter 2s linear forwards; }
+.dice-shake-meter { animation: diceShakeMeter 1s linear forwards; }
 @keyframes diceFlyDown {
   0% { transform: translateY(-46vh) scale(2); opacity: 0.2; }
   70% { transform: translateY(4px) scale(1); opacity: 1; }

@@ -18,7 +18,7 @@ const JOLT_WINDOW_MS = 800;
 /** Ristingen regnes som stoppet etter så lang tid uten rykk. */
 const SETTLE_MS = 400;
 /** Man må riste minst så lenge før terningene kastes. Kortere risting gir ikke kast. */
-export const MIN_SHAKE_MS = 2000;
+export const MIN_SHAKE_MS = 1000;
 /** Lengste risting før terningene kastes uansett. */
 const MAX_SHAKE_MS = 5000;
 /** Minste tid fra et kast til neste risting kan starte. */

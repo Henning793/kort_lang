@@ -171,12 +171,12 @@ export function DiceBottomBar({ t, turnText }: { t: DiceTurn; turnText: string }
   const hint = shaking
     ? 'Rist videre …'
     : tooShort
-      ? 'Rist litt lenger: minst 2 sekunder.'
+      ? 'Rist litt lenger: minst 1 sekund.'
       : roll.used === 0
         ? perm === 'needs-permission'
           ? 'Trykk Kast første gang, så kan du riste.'
           : shake
-            ? 'Rist telefonen i 2 sekunder.'
+            ? 'Rist telefonen i 1 sekund.'
             : 'Trykk Kast.'
         : forced?.auto
           ? `${forced.points} p føres i ${forced.name}.`
