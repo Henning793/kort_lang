@@ -6,6 +6,7 @@ import { ResultScreen } from './screens/ResultScreen';
 import { HubScreen } from './screens/HubScreen';
 import { FemkampGame } from './femkamp/FemkampGame';
 import { YatzyGame } from './yatzy/YatzyGame';
+import { DyreyatzyGame } from './dyreyatzy/DyreyatzyGame';
 
 function KortOgLang() {
   const screen = useGameStore((s) => s.screen);
@@ -28,6 +29,7 @@ export default function App() {
         {view === 'kortlang' && <KortOgLang />}
         {view === 'femkamp' && <FemkampGame />}
         {view === 'yatzy' && <YatzyGame />}
+        {view === 'dyreyatzy' && <DyreyatzyGame />}
       </div>
     </div>
   );

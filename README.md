@@ -5,6 +5,9 @@ alle spillene, og hvert spill lagrer sitt eget pågående spill.
 
 - **Kort og lang**: se `design/design_handoff_kort_og_lang/README.md` for regler og design.
 - **Yatzy**: skandinavisk Yatzy med fri eller tvungen spillmåte, høyest poengsum vinner. Se `src/yatzy/`.
+- **Dyreyatzy**: Yatzy med dyreterninger, etter papirarket. Bonusgrensen står i `src/dyreyatzy/rules.ts`.
+- Begge terningspillene deler poengblokk og terningkopp i `src/dice/`. Man velger egne terninger
+  eller å trille i appen (rist telefonen, eller trykk Kast).
 - **Femkamp**: 5 runder, 3–8 spillere, færrest poeng vinner. Regler og poeng ligger i
   `src/femkamp/rules.ts` og `src/femkamp/logic.ts`.
 
@@ -14,6 +17,7 @@ alle spillene, og hvert spill lagrer sitt eget pågående spill.
 npx tsx src/game/logic.test.ts
 npx tsx src/femkamp/logic.test.ts
 npx tsx src/yatzy/logic.test.ts
+npx tsx src/dyreyatzy/logic.test.ts
 ```
 
 ## Utvikling
