@@ -7,7 +7,7 @@ import { ConfettiBomb } from '../components/ConfettiBomb';
 import { playerColor } from '../components/game/colors';
 import { useDiceGame } from './context';
 import { DiceFace } from './DiceFace';
-import { DiceTray } from './DiceTray';
+import { DiceBottomBar, DiceCenter, DiceTopRow, useDiceTurn } from './DiceTray';
 import { activeRoll, canRoll } from './roll';
 import {
   upperSum,
@@ -71,10 +71,22 @@ export function DicePlay() {
 
   useEffect(() => {
     if (!autoScore) return;
-    const t = window.setTimeout(scoreForced, 1600);
+    const t = window.setTimeout(scoreForced, 2200);
     return () => window.clearTimeout(t);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [autoScore, rollKey]);
+
+  const dice = useDiceTurn({
+    enabled: inApp,
+    roll,
+    color: turnColor,
+    name: turnPlayer.name,
+    onRoll: () => s.rollDice(rollKey, forced?.keep),
+    onToggle: (i) => s.toggleHold(rollKey, i),
+    forced: forced
+      ? { name: forced.name, points: forced.score(roll.dice), auto: autoScore, onScore: scoreForced }
+      : undefined,
+  });
 
   function score(t: Target, value: number | null) {
     const idx = s.players.findIndex((p) => p.id === t.playerId);
@@ -171,6 +183,8 @@ export function DicePlay() {
         </div>
       )}
 
+      {inApp && <DiceTopRow t={dice} />}
+
       <div className="px-3 overflow-x-auto">
         <table className="w-full border-collapse tabular-nums">
           <thead>
@@ -226,7 +240,7 @@ export function DicePlay() {
                     const editable = canEdit(sheet, cat, s.mode);
                     const color = playerColor(i);
                     const isTurn = i === turn && !done;
-                    const suggestion = rolled && isTurn && v == null && editable ? c.score(roll.dice) : null;
+                    const suggestion = rolled && !dice.busy && isTurn && v == null && editable ? c.score(roll.dice) : null;
                     const justPopped = popped?.startsWith(`${p.id}:${cat}:`);
                     const maxed = v != null && v > 0 && v === Math.max(...c.values);
                     return (
@@ -297,23 +311,10 @@ export function DicePlay() {
         </table>
       </div>
 
-      {inApp ? (
-        <DiceTray
-          rollKey={rollKey}
-          roll={roll}
-          name={turnPlayer.name}
-          color={turnColor}
-          turnNo={turnNo}
-          num={num}
-          onRoll={() => s.rollDice(rollKey, forced?.keep)}
-          forced={
-            forced
-              ? { name: forced.name, points: forced.score(roll.dice), auto: autoScore, onScore: scoreForced }
-              : undefined
-          }
-          onToggle={(i) => s.toggleHold(rollKey, i)}
-        />
-      ) : (
+      {inApp && <DiceBottomBar t={dice} turnText={forced ? forced.name : `tur ${turnNo} av ${num}`} />}
+      {inApp && <DiceCenter t={dice} />}
+
+      {!inApp && (
         <div className="px-5 pt-4 pb-7 mt-auto">
           <Button
             variant="primary"
