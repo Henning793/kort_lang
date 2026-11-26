@@ -34,7 +34,7 @@ const s = emptySheet(DYREYATZY);
 check(bonus(DYREYATZY, s) === 10, `${DYRE_BONUS_LIMIT} dyr gir bonus`);
 s[13] = 10;
 check(total(DYREYATZY, s) === 15 + 10 + 10, 'total med bonus og yatzy');
-s[0] = 2;
+[1, 1, 1, 1, 1, 0].forEach((v, i) => (s[i] = v));
 check(bonus(DYREYATZY, s) === 0, 'ingen bonus under grensen');
 
 // Vanlig Yatzy regnet ut fra terningene

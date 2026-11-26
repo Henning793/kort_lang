@@ -27,6 +27,8 @@ export type DiceState = {
   rollDice: (key: string, keep?: (dice: number[]) => boolean[]) => void;
   /** Tar bort en terning (beholder den) eller legger den tilbake i koppen. */
   toggleHold: (key: string, i: number) => void;
+  /** Beholder akkurat disse terningene (f.eks. de som passer en rute man trykket på). */
+  holdDice: (key: string, held: boolean[]) => void;
   clearRoll: () => void;
   showResult: () => void;
   playAgain: () => void;
@@ -81,6 +83,13 @@ export function createDiceStore(def: DiceGameDef, storageKey: string) {
             const held = r.used === 0 ? Array(DICE_COUNT).fill(false) : r.held;
             const dice = r.dice.map((d, i) => (held[i] ? d : rollDie()));
             return { roll: { key, dice, held: keep ? keep(dice) : held, used: r.used + 1 } };
+          }),
+
+        holdDice: (key, held) =>
+          set((s) => {
+            const r = s.roll;
+            if (!r || r.key !== key || r.used === 0 || r.used >= MAX_ROLLS) return {};
+            return { roll: { ...r, held } };
           }),
 
         toggleHold: (key, i) =>
