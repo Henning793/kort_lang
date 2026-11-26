@@ -8,6 +8,7 @@ import { playerColor } from '../components/game/colors';
 import { useDiceGame } from './context';
 import { DiceFace } from './DiceFace';
 import { DiceBottomBar, DiceCenter, DiceTopRow, useDiceTurn } from './DiceTray';
+import { MAX_ROLLS } from './types';
 import { activeRoll, canRoll } from './roll';
 import {
   upperSum,
@@ -113,7 +114,18 @@ export function DicePlay() {
     }
   }
 
+  // Fri: første trykk på en rute før siste kast beholder terningene som passer den.
+  // Trykk på samme rute igjen for å føre poengene.
+  const [picked, setPicked] = useState<{ at: string; cat: number } | null>(null);
+  const pickKey = `${rollKey}:${roll.used}`;
+  const pickedCat = picked && picked.at === pickKey ? picked.cat : -1;
+
   function onCell(playerId: string, cat: number, suggestion: number | null) {
+    if (suggestion != null && !forced && roll.used < MAX_ROLLS && pickedCat !== cat) {
+      s.holdDice(rollKey, cats[cat].keep(roll.dice));
+      setPicked({ at: pickKey, cat });
+      return;
+    }
     if (suggestion != null) {
       score({ playerId, cat }, suggestion);
       s.clearRoll();
@@ -253,7 +265,11 @@ export function DicePlay() {
                           onClick={() => onCell(p.id, cat, suggestion)}
                           disabled={!editable}
                           aria-label={
-                            suggestion != null ? `${p.name}, ${c.name}: før ${suggestion} poeng` : `${p.name}, ${c.name}`
+                            suggestion != null
+                              ? cat === pickedCat || forced || roll.used >= MAX_ROLLS
+                                ? `${p.name}, ${c.name}: før ${suggestion} poeng`
+                                : `${p.name}, ${c.name}: behold terningene (${suggestion} poeng)`
+                              : `${p.name}, ${c.name}`
                           }
                           className={`relative w-full min-w-[40px] ${compact ? 'h-[28px]' : 'h-[34px]'} rounded-[10px] text-[15px] font-bold cursor-pointer disabled:cursor-default grid place-items-center ${
                             justPopped ? 'yz-pop' : ''
@@ -266,7 +282,9 @@ export function DicePlay() {
                                   ? { background: color, color: '#f9f4ed' }
                                   : { background: `color-mix(in srgb, ${color} 22%, var(--color-surface))` }
                               : suggestion != null
-                                ? suggestion > 0
+                                ? cat === pickedCat
+                                  ? { background: color, color: '#f9f4ed', boxShadow: `0 0 0 2px var(--color-bg), 0 0 0 4px ${color}` }
+                                  : suggestion > 0
                                   ? { border: `2px solid ${color}`, background: 'var(--color-bg)', color }
                                   : { border: `1.5px dashed ${color}`, background: 'transparent', color: '#a19786' }
                                 : editable && isTurn
@@ -311,7 +329,13 @@ export function DicePlay() {
         </table>
       </div>
 
-      {inApp && <DiceBottomBar t={dice} turnText={forced ? forced.name : `tur ${turnNo} av ${num}`} />}
+      {inApp && (
+        <DiceBottomBar
+          t={dice}
+          turnText={forced ? forced.name : `tur ${turnNo} av ${num}`}
+          note={pickedCat >= 0 ? `Trykk ${cats[pickedCat].name} igjen for å føre, eller kast.` : undefined}
+        />
+      )}
       {inApp && <DiceCenter t={dice} />}
 
       {!inApp && (

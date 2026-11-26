@@ -160,7 +160,7 @@ export function DiceTopRow({ t }: { t: DiceTurn }) {
 }
 
 /** Bunnlinjen: hvem sin tur, beholdte terninger, og Kast. */
-export function DiceBottomBar({ t, turnText }: { t: DiceTurn; turnText: string }) {
+export function DiceBottomBar({ t, turnText, note }: { t: DiceTurn; turnText: string; note?: string }) {
   const { def, roll, color, name, forced, can, canHold, perm, busy, tooShort, pressRoll, onToggle, shaking } = t;
   const idx = roll.dice.map((_, i) => i);
   const kept = idx.filter((i) => roll.held[i]);
@@ -170,6 +170,8 @@ export function DiceBottomBar({ t, turnText }: { t: DiceTurn; turnText: string }
 
   const hint = shaking
     ? 'Rist videre …'
+    : note && !busy
+      ? note
     : tooShort
       ? 'Rist litt lenger: minst 1 sekund.'
       : roll.used === 0
