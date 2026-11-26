@@ -15,23 +15,33 @@ const JOLT = 6;
 /** Så mange rykk innen JOLT_WINDOW_MS før det regnes som risting (ikke bare å løfte telefonen). */
 const JOLTS_TO_START = 2;
 const JOLT_WINDOW_MS = 800;
-/** Kastet skjer når ristingen har stoppet så lenge. */
-const SETTLE_MS = 350;
+/** Ristingen regnes som stoppet etter så lang tid uten rykk. */
+const SETTLE_MS = 400;
+/** Man må riste minst så lenge før terningene kastes. Kortere risting gir ikke kast. */
+export const MIN_SHAKE_MS = 2000;
 /** Lengste risting før terningene kastes uansett. */
-const MAX_SHAKE_MS = 2500;
+const MAX_SHAKE_MS = 5000;
 /** Minste tid fra et kast til neste risting kan starte. */
 const COOLDOWN_MS = 600;
 
-export type ShakeState = { perm: Perm; shaking: boolean; request: () => Promise<void> };
+export type ShakeState = {
+  perm: Perm;
+  /** Når ristingen startet (ms), eller 0 når telefonen ligger stille. */
+  shakingSince: number;
+  /** Øker hver gang noen slutter å riste før MIN_SHAKE_MS. */
+  tooShort: number;
+  request: () => Promise<void>;
+};
 
 /**
- * Følger med på bevegelsessensoren. Mens telefonen ristes er `shaking` sann, og når
- * ristingen stopper kalles `onShake` én gang. På iPhone må tillatelse be om fra et trykk:
+ * Følger med på bevegelsessensoren. Mens telefonen ristes er `shakingSince` satt. Når
+ * ristingen stopper etter minst MIN_SHAKE_MS kalles `onShake` én gang. På iPhone må tillatelse be om fra et trykk:
  * kall `request()` fra en knapp (f.eks. første «Kast»).
  */
 export function useShake(onShake: () => void, enabled: boolean): ShakeState {
   const [perm, setPerm] = useState<Perm>(initialPerm);
-  const [shaking, setShaking] = useState(false);
+  const [shakingSince, setShakingSince] = useState(0);
+  const [tooShort, setTooShort] = useState(0);
   const cb = useRef(onShake);
   useEffect(() => {
     cb.current = onShake;
@@ -51,11 +61,16 @@ export function useShake(onShake: () => void, enabled: boolean): ShakeState {
     const finish = () => {
       window.clearTimeout(settle);
       settle = undefined;
+      const long = Date.now() - shakeStart >= MIN_SHAKE_MS;
       shakeStart = 0;
       jolts = [];
-      lastRoll = Date.now();
-      setShaking(false);
-      cb.current();
+      setShakingSince(0);
+      if (long) {
+        lastRoll = Date.now();
+        cb.current();
+      } else {
+        setTooShort((n) => n + 1);
+      }
     };
 
     const handler = (e: DeviceMotionEvent) => {
@@ -86,7 +101,7 @@ export function useShake(onShake: () => void, enabled: boolean): ShakeState {
         jolts = [...jolts.filter((t) => now - t < JOLT_WINDOW_MS), now];
         if (jolts.length < JOLTS_TO_START) return;
         shakeStart = now;
-        setShaking(true);
+        setShakingSince(now);
       }
       if (now - shakeStart > MAX_SHAKE_MS) {
         finish();
@@ -102,7 +117,7 @@ export function useShake(onShake: () => void, enabled: boolean): ShakeState {
     return () => {
       window.removeEventListener('devicemotion', handler);
       window.clearTimeout(settle);
-      setShaking(false);
+      setShakingSince(0);
     };
   }, [perm, enabled]);
 
@@ -118,5 +133,5 @@ export function useShake(onShake: () => void, enabled: boolean): ShakeState {
     }
   }, [perm]);
 
-  return { perm, shaking, request };
+  return { perm, shakingSince, tooShort, request };
 }

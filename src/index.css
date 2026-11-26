@@ -141,6 +141,8 @@ h4 {
   75% { transform: translate(-2px, -3px) rotate(-6deg); }
 }
 .dice-rattle { animation: diceRattle 0.18s linear infinite; }
+@keyframes diceShakeMeter { from { width: 0; } to { width: 100%; } }
+.dice-shake-meter { animation: diceShakeMeter 2s linear forwards; }
 @keyframes yzToast {
   0% { transform: translate(-50%, 16px) scale(0.8); opacity: 0; }
   15% { transform: translate(-50%, 0) scale(1.05); opacity: 1; }
