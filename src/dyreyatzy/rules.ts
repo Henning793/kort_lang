@@ -1,4 +1,5 @@
 import { counts } from '../dice/logic';
+import { keepFace, keepOfKind, keepTwoPairs, keepHouse, keepDistinct, type KeepFn } from '../dice/keep';
 import type { DiceCategory, DiceGameDef } from '../dice/types';
 import { ANIMALS } from '../dice/animals';
 import { playerColor } from '../components/game/colors';
@@ -11,12 +12,20 @@ export const DYRE_BONUS_LIMIT = 15;
 export const DYRE_BONUS = 10;
 
 const kinds = (d: number[]) => counts(d).slice(1);
-const fixed = (name: string, hint: string, points: number, ok: (c: number[]) => boolean, yatzy = false): DiceCategory => ({
+const fixed = (
+  name: string,
+  hint: string,
+  points: number,
+  ok: (c: number[]) => boolean,
+  keep: KeepFn,
+  yatzy = false
+): DiceCategory => ({
   name,
   hint: `${hint} Gir ${points} poeng.`,
   values: [0, points],
   yatzy,
   score: (d) => (d.every((x) => x >= 1) && ok(kinds(d)) ? points : 0),
+  keep,
 });
 
 /** Dyreyatzy med fem dyreterninger, etter arket. */
@@ -29,16 +38,17 @@ export const DYRE_CATEGORIES: DiceCategory[] = [
       upper: true,
       face: i + 1,
       score: (d) => counts(d)[i + 1],
+      keep: keepFace(i + 1),
     })
   ),
-  fixed('2 like', 'To like dyr.', 2, (c) => c.some((n) => n >= 2)),
-  fixed('2×2 like', 'To par med ulike dyr.', 4, (c) => c.filter((n) => n >= 2).length >= 2),
-  fixed('3 like', 'Tre like dyr.', 3, (c) => c.some((n) => n >= 3)),
-  fixed('4 like', 'Fire like dyr.', 4, (c) => c.some((n) => n >= 4)),
-  fixed('4 ulike', 'Fire forskjellige dyr.', 4, (c) => c.filter((n) => n >= 1).length >= 4),
-  fixed('5 ulike', 'Fem forskjellige dyr.', 5, (c) => c.filter((n) => n >= 1).length === 5),
-  fixed('Hus', 'Tre like og to like.', 5, (c) => c.includes(3) && c.includes(2)),
-  fixed('Yatzy', 'Fem like dyr.', 10, (c) => c.includes(5), true),
+  fixed('2 like', 'To like dyr.', 2, (c) => c.some((n) => n >= 2), keepOfKind(2)),
+  fixed('2×2 like', 'To par med ulike dyr.', 4, (c) => c.filter((n) => n >= 2).length >= 2, keepTwoPairs),
+  fixed('3 like', 'Tre like dyr.', 3, (c) => c.some((n) => n >= 3), keepOfKind(3)),
+  fixed('4 like', 'Fire like dyr.', 4, (c) => c.some((n) => n >= 4), keepOfKind(4)),
+  fixed('4 ulike', 'Fire forskjellige dyr.', 4, (c) => c.filter((n) => n >= 1).length >= 4, keepDistinct),
+  fixed('5 ulike', 'Fem forskjellige dyr.', 5, (c) => c.filter((n) => n >= 1).length === 5, keepDistinct),
+  fixed('Hus', 'Tre like og to like.', 5, (c) => c.includes(3) && c.includes(2), keepHouse),
+  fixed('Yatzy', 'Fem like dyr.', 10, (c) => c.includes(5), keepOfKind(5), true),
 ];
 
 export const DYREYATZY: DiceGameDef = {

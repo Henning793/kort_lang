@@ -1,4 +1,5 @@
 import { counts } from '../dice/logic';
+import { keepFace, keepOfKind, keepTwoPairs, keepHouse, keepRun, keepHigh } from '../dice/keep';
 import type { DiceCategory, DiceGameDef, SheetMode } from '../dice/types';
 import { playerColor } from '../components/game/colors';
 
@@ -25,6 +26,7 @@ function upper(face: number, name: string): YatzyCategory {
     upper: true,
     face,
     score: (dice) => counts(dice)[face] * face,
+    keep: keepFace(face),
   };
 }
 
@@ -41,6 +43,7 @@ export const YATZY_CATEGORIES: YatzyCategory[] = [
     hint: 'Summen av to like.',
     values: [0, ...faces.map((f) => 2 * f)],
     score: (d) => 2 * bestOfKind(d, 2),
+    keep: keepOfKind(2),
   },
   {
     name: 'To par',
@@ -51,30 +54,35 @@ export const YATZY_CATEGORIES: YatzyCategory[] = [
       const pairs = faces.filter((f) => c[f] >= 2).sort((a, b) => b - a);
       return pairs.length >= 2 ? 2 * pairs[0] + 2 * pairs[1] : 0;
     },
+    keep: keepTwoPairs,
   },
   {
     name: 'Tre like',
     hint: 'Summen av tre like.',
     values: [0, ...faces.map((f) => 3 * f)],
     score: (d) => 3 * bestOfKind(d, 3),
+    keep: keepOfKind(3),
   },
   {
     name: 'Fire like',
     hint: 'Summen av fire like.',
     values: [0, ...faces.map((f) => 4 * f)],
     score: (d) => 4 * bestOfKind(d, 4),
+    keep: keepOfKind(4),
   },
   {
     name: 'Liten straight',
     hint: '1-2-3-4-5 gir 15 poeng.',
     values: [0, 15],
     score: (d) => ([...d].sort().join('') === '12345' ? 15 : 0),
+    keep: keepRun([1, 2, 3, 4, 5]),
   },
   {
     name: 'Stor straight',
     hint: '2-3-4-5-6 gir 20 poeng.',
     values: [0, 20],
     score: (d) => ([...d].sort().join('') === '23456' ? 20 : 0),
+    keep: keepRun([2, 3, 4, 5, 6]),
   },
   {
     name: 'Hus',
@@ -84,12 +92,14 @@ export const YATZY_CATEGORIES: YatzyCategory[] = [
       const c = counts(d);
       return c.includes(3) && c.includes(2) ? sum(d) : 0;
     },
+    keep: keepHouse,
   },
   {
     name: 'Sjanse',
     hint: 'Summen av alle terningene.',
     values: [0, ...range(26).map((i) => i + 5)],
     score: (d) => (d.every((x) => x >= 1) ? sum(d) : 0),
+    keep: keepHigh,
   },
   {
     name: 'Yatzy',
@@ -97,6 +107,7 @@ export const YATZY_CATEGORIES: YatzyCategory[] = [
     values: [0, 50],
     yatzy: true,
     score: (d) => (bestOfKind(d, 5) ? 50 : 0),
+    keep: keepOfKind(5),
   },
 ];
 

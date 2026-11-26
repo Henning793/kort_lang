@@ -21,6 +21,7 @@ export function DiceTray({
   num,
   onRoll,
   onToggle,
+  forced,
 }: {
   rollKey: string;
   roll: Roll;
@@ -30,6 +31,8 @@ export function DiceTray({
   num: number;
   onRoll: () => void;
   onToggle: (i: number) => void;
+  /** Tvungen: ruten som skal fylles, hva kastet gir nå, og om det føres av seg selv. */
+  forced?: { name: string; points: number; auto: boolean; onScore: () => void };
 }) {
   const { def } = useDiceGame();
   const [anim, setAnim] = useState<number | null>(null);
@@ -49,7 +52,7 @@ export function DiceTray({
     navigator.vibrate?.(35);
   }
 
-  const { perm, request } = useShake(doRoll, can);
+  const { perm, shaking, request } = useShake(doRoll, can && !forced?.auto);
   const shake = perm === 'granted' || perm === 'needs-permission';
 
   const idx = roll.dice.map((_, i) => i);
@@ -63,9 +66,11 @@ export function DiceTray({
         : shake
           ? 'Rist telefonen for å kaste.'
           : 'Trykk Kast for å kaste.'
-      : roll.used < MAX_ROLLS
-        ? 'Trykk på terningene du vil beholde, og kast resten. Eller velg rute.'
-        : 'Siste kast. Velg en rute i tabellen.';
+      : forced && roll.used < MAX_ROLLS
+        ? `Ingen passer til ${forced.name}. Kast igjen.`
+        : roll.used < MAX_ROLLS
+          ? 'Trykk på terningene du vil beholde, og kast resten. Eller velg rute.'
+          : 'Siste kast. Velg en rute i tabellen.';
 
   return (
     <div
@@ -75,8 +80,8 @@ export function DiceTray({
       <div className="flex items-center gap-2 mb-1.5">
         <span className="w-2.5 h-2.5 rounded-full flex-none" style={{ background: color }} />
         <span className="font-heading text-[15px] truncate">{name} sin tur</span>
-        <span className="text-[12px] opacity-60 whitespace-nowrap">
-          · tur {turnNo} av {num}
+        <span className="text-[12px] opacity-60 whitespace-nowrap truncate">
+          {forced ? `· ${forced.name}` : `· tur ${turnNo} av ${num}`}
         </span>
         <span className="ml-auto flex gap-1" aria-label={`Kast ${roll.used} av ${MAX_ROLLS}`}>
           {Array.from({ length: MAX_ROLLS }, (_, k) => (
@@ -128,7 +133,7 @@ export function DiceTray({
                   kind={def.kind}
                   face={roll.dice[i]}
                   size={44}
-                  className={`${anim != null ? 'yz-roll' : ''} ${roll.used === 0 ? 'opacity-45' : ''}`}
+                  className={`${shaking ? 'dice-rattle' : anim != null ? 'yz-roll' : ''} ${roll.used === 0 && !shaking ? 'opacity-45' : ''}`}
                   style={{ ['--r' as string]: tilt(i, roll.dice[i]), animationDelay: `${i * 40}ms`, rotate: anim == null ? tilt(i, roll.dice[i]) : undefined }}
                 />
               </button>
@@ -136,18 +141,30 @@ export function DiceTray({
           </div>
         </div>
 
-        <button
-          onClick={() => {
-            if (perm === 'needs-permission') void request();
-            doRoll();
-          }}
-          disabled={!can}
-          className="w-[76px] flex-none rounded-card flex flex-col items-center justify-center gap-1 text-bg font-heading cursor-pointer disabled:cursor-default disabled:opacity-40 active:scale-95 transition-transform"
-          style={{ background: color }}
-        >
-          <Smartphone size={22} strokeWidth={2.25} className={can && roll.used === 0 ? 'dice-wiggle' : ''} />
-          <span className="text-[15px] leading-none">{roll.used === 0 ? 'Kast' : 'Kast igjen'}</span>
-        </button>
+        <div className="w-[84px] flex-none flex flex-col gap-1.5">
+          <button
+            onClick={() => {
+              if (perm === 'needs-permission') void request();
+              doRoll();
+            }}
+            disabled={!can || forced?.auto}
+            className="flex-1 rounded-card flex flex-col items-center justify-center gap-1 text-bg font-heading cursor-pointer disabled:cursor-default disabled:opacity-40 active:scale-95 transition-transform"
+            style={{ background: color }}
+          >
+            <Smartphone size={22} strokeWidth={2.25} className={can && roll.used === 0 ? 'dice-wiggle' : ''} />
+            <span className="text-[14px] leading-none text-center">{roll.used === 0 ? 'Kast' : 'Kast igjen'}</span>
+          </button>
+          {forced && roll.used > 0 && (
+            <button
+              onClick={forced.onScore}
+              disabled={forced.auto}
+              className="h-[30px] rounded-pill border-2 font-heading text-[13px] cursor-pointer disabled:cursor-default"
+              style={{ borderColor: color, color: forced.auto ? '#f9f4ed' : color, background: forced.auto ? color : 'transparent' }}
+            >
+              {forced.auto ? 'Føres …' : `Før ${forced.points} p`}
+            </button>
+          )}
+        </div>
       </div>
 
     </div>

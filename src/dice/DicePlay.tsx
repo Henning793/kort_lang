@@ -8,8 +8,20 @@ import { playerColor } from '../components/game/colors';
 import { useDiceGame } from './context';
 import { DiceFace } from './DiceFace';
 import { DiceTray } from './DiceTray';
-import { activeRoll } from './roll';
-import { upperSum, bonus, total, canEdit, turnIndex, isComplete, emptySheet, filledCount, parDiff, type Sheet } from './logic';
+import { activeRoll, canRoll } from './roll';
+import {
+  upperSum,
+  bonus,
+  total,
+  canEdit,
+  turnIndex,
+  isComplete,
+  emptySheet,
+  filledCount,
+  nextForced,
+  parDiff,
+  type Sheet,
+} from './logic';
 import type { DiceGameDef } from './types';
 
 type Target = { playerId: string; cat: number };
@@ -46,6 +58,23 @@ export function DicePlay() {
   const rollKey = `${turnPlayer.id}:${filled}`;
   const roll = activeRoll(s.roll, rollKey);
   const rolled = inApp && roll.used > 0;
+  // Tvungen: bare én rute er mulig, så appen beholder terningene som passer og fører poengene selv.
+  const forcedCat = inApp && s.mode === 'tvungen' ? nextForced(sheetOf(turnPlayer.id)) : -1;
+  const forced = forcedCat >= 0 ? cats[forcedCat] : null;
+  const autoScore = forced != null && roll.used > 0 && !canRoll(roll);
+
+  function scoreForced() {
+    if (!forced) return;
+    score({ playerId: turnPlayer.id, cat: forcedCat }, forced.score(roll.dice));
+    s.clearRoll();
+  }
+
+  useEffect(() => {
+    if (!autoScore) return;
+    const t = window.setTimeout(scoreForced, 1600);
+    return () => window.clearTimeout(t);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [autoScore, rollKey]);
 
   function score(t: Target, value: number | null) {
     const idx = s.players.findIndex((p) => p.id === t.playerId);
@@ -276,7 +305,12 @@ export function DicePlay() {
           color={turnColor}
           turnNo={turnNo}
           num={num}
-          onRoll={() => s.rollDice(rollKey)}
+          onRoll={() => s.rollDice(rollKey, forced?.keep)}
+          forced={
+            forced
+              ? { name: forced.name, points: forced.score(roll.dice), auto: autoScore, onScore: scoreForced }
+              : undefined
+          }
           onToggle={(i) => s.toggleHold(rollKey, i)}
         />
       ) : (

@@ -10,19 +10,29 @@ function initialPerm(): Perm {
   return typeof DME.requestPermission === 'function' ? 'needs-permission' : 'granted';
 }
 
-/** Hvor hardt det må ristes (endring i m/s² mellom to målinger, på minst to akser). */
-const THRESHOLD = 12;
-/** Minste tid mellom to kast. */
-const COOLDOWN_MS = 900;
+/** Et «rykk»: bevegelse (uten tyngdekraft) over dette, i m/s². */
+const JOLT = 6;
+/** Så mange rykk innen JOLT_WINDOW_MS før det regnes som risting (ikke bare å løfte telefonen). */
+const JOLTS_TO_START = 2;
+const JOLT_WINDOW_MS = 800;
+/** Kastet skjer når ristingen har stoppet så lenge. */
+const SETTLE_MS = 350;
+/** Lengste risting før terningene kastes uansett. */
+const MAX_SHAKE_MS = 2500;
+/** Minste tid fra et kast til neste risting kan starte. */
+const COOLDOWN_MS = 600;
+
+export type ShakeState = { perm: Perm; shaking: boolean; request: () => Promise<void> };
 
 /**
- * Kaller `onShake` når telefonen ristes. På iPhone må tillatelse be om fra et trykk:
+ * Følger med på bevegelsessensoren. Mens telefonen ristes er `shaking` sann, og når
+ * ristingen stopper kalles `onShake` én gang. På iPhone må tillatelse be om fra et trykk:
  * kall `request()` fra en knapp (f.eks. første «Kast»).
  */
-export function useShake(onShake: () => void, enabled: boolean) {
+export function useShake(onShake: () => void, enabled: boolean): ShakeState {
   const [perm, setPerm] = useState<Perm>(initialPerm);
+  const [shaking, setShaking] = useState(false);
   const cb = useRef(onShake);
-  const last = useRef(0);
   useEffect(() => {
     cb.current = onShake;
   });
@@ -30,27 +40,70 @@ export function useShake(onShake: () => void, enabled: boolean) {
   useEffect(() => {
     // Lytt også før tillatelse er gitt: der det ikke trengs (Android) kommer målingene uansett.
     if (perm === 'unsupported' || perm === 'denied' || !enabled) return;
-    let prev: { x: number; y: number; z: number } | null = null;
-    const handler = (e: DeviceMotionEvent) => {
-      const a = e.accelerationIncludingGravity;
-      if (!a || a.x == null || a.y == null || a.z == null) return;
-      const cur = { x: a.x, y: a.y, z: a.z };
-      if (!prev) setPerm('granted');
-      else {
-        const dx = Math.abs(cur.x - prev.x);
-        const dy = Math.abs(cur.y - prev.y);
-        const dz = Math.abs(cur.z - prev.z);
-        const strong = [dx, dy, dz].filter((d) => d > THRESHOLD).length >= 2;
-        const now = Date.now();
-        if (strong && now - last.current > COOLDOWN_MS) {
-          last.current = now;
-          cb.current();
-        }
-      }
-      prev = cur;
+    let gravity: { x: number; y: number; z: number } | null = null;
+    let jolts: number[] = [];
+    let shakeStart = 0;
+    let lastJolt = 0;
+    let lastRoll = 0;
+    let settle: number | undefined;
+    let first = true;
+
+    const finish = () => {
+      window.clearTimeout(settle);
+      settle = undefined;
+      shakeStart = 0;
+      jolts = [];
+      lastRoll = Date.now();
+      setShaking(false);
+      cb.current();
     };
+
+    const handler = (e: DeviceMotionEvent) => {
+      // Bevegelse uten tyngdekraft. Finnes ikke den, trekkes tyngdekraften fra selv (lavpass).
+      let lin: { x: number; y: number; z: number } | null = null;
+      const a = e.acceleration;
+      if (a && a.x != null && a.y != null && a.z != null) {
+        lin = { x: a.x, y: a.y, z: a.z };
+      } else {
+        const g = e.accelerationIncludingGravity;
+        if (!g || g.x == null || g.y == null || g.z == null) return;
+        gravity = gravity
+          ? { x: 0.85 * gravity.x + 0.15 * g.x, y: 0.85 * gravity.y + 0.15 * g.y, z: 0.85 * gravity.z + 0.15 * g.z }
+          : { x: g.x, y: g.y, z: g.z };
+        lin = { x: g.x - gravity.x, y: g.y - gravity.y, z: g.z - gravity.z };
+      }
+      if (first) {
+        first = false;
+        setPerm('granted');
+      }
+
+      const now = Date.now();
+      const mag = Math.hypot(lin.x, lin.y, lin.z);
+      if (mag < JOLT || now - lastRoll < COOLDOWN_MS) return;
+      lastJolt = now;
+
+      if (!shakeStart) {
+        jolts = [...jolts.filter((t) => now - t < JOLT_WINDOW_MS), now];
+        if (jolts.length < JOLTS_TO_START) return;
+        shakeStart = now;
+        setShaking(true);
+      }
+      if (now - shakeStart > MAX_SHAKE_MS) {
+        finish();
+        return;
+      }
+      window.clearTimeout(settle);
+      settle = window.setTimeout(() => {
+        if (Date.now() - lastJolt >= SETTLE_MS - 20) finish();
+      }, SETTLE_MS);
+    };
+
     window.addEventListener('devicemotion', handler);
-    return () => window.removeEventListener('devicemotion', handler);
+    return () => {
+      window.removeEventListener('devicemotion', handler);
+      window.clearTimeout(settle);
+      setShaking(false);
+    };
   }, [perm, enabled]);
 
   /** Ber om tillatelse til bevegelsessensoren (iPhone). Må kalles fra et trykk. */
@@ -65,5 +118,5 @@ export function useShake(onShake: () => void, enabled: boolean) {
     }
   }, [perm]);
 
-  return { perm, request };
+  return { perm, shaking, request };
 }

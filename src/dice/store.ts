@@ -23,7 +23,8 @@ export type DiceState = {
   startGame: () => void;
   setScore: (playerId: string, cat: number, value: number | null) => void;
   /** Kaster terningene som ikke er tatt bort. */
-  rollDice: (key: string) => void;
+  /** `keep` legger terninger som passer ruten blant de man beholder (tvungen). */
+  rollDice: (key: string, keep?: (dice: number[]) => boolean[]) => void;
   /** Tar bort en terning (beholder den) eller legger den tilbake i koppen. */
   toggleHold: (key: string, i: number) => void;
   clearRoll: () => void;
@@ -73,12 +74,13 @@ export function createDiceStore(def: DiceGameDef, storageKey: string) {
             sheets: { ...s.sheets, [playerId]: (s.sheets[playerId] ?? emptySheet(def)).map((v, i) => (i === cat ? value : v)) },
           })),
 
-        rollDice: (key) =>
+        rollDice: (key, keep) =>
           set((s) => {
             const r = activeRoll(s.roll, key);
             if (!canRoll(r)) return {};
             const held = r.used === 0 ? Array(DICE_COUNT).fill(false) : r.held;
-            return { roll: { key, dice: r.dice.map((d, i) => (held[i] ? d : rollDie())), held, used: r.used + 1 } };
+            const dice = r.dice.map((d, i) => (held[i] ? d : rollDie()));
+            return { roll: { key, dice, held: keep ? keep(dice) : held, used: r.used + 1 } };
           }),
 
         toggleHold: (key, i) =>

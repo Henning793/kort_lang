@@ -19,6 +19,8 @@ export type DiceCategory = {
   yatzy?: boolean;
   /** Poeng for ruten med disse fem terningene (0 hvis de ikke passer). */
   score: (dice: number[]) => number;
+  /** Terningene som passer ruten. Brukes i tvungen spillmåte for å beholde dem automatisk. */
+  keep: (dice: number[]) => boolean[];
 };
 
 export type DiceGameId = 'yatzy' | 'dyreyatzy';

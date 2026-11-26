@@ -134,6 +134,13 @@ h4 {
   20%, 40% { transform: rotate(14deg); }
 }
 .dice-wiggle { animation: diceWiggle 1.6s ease-in-out infinite; }
+@keyframes diceRattle {
+  0%, 100% { transform: translate(0, 0) rotate(0); }
+  25% { transform: translate(-3px, 2px) rotate(-14deg); }
+  50% { transform: translate(3px, -2px) rotate(10deg); }
+  75% { transform: translate(-2px, -3px) rotate(-6deg); }
+}
+.dice-rattle { animation: diceRattle 0.18s linear infinite; }
 @keyframes yzToast {
   0% { transform: translate(-50%, 16px) scale(0.8); opacity: 0; }
   15% { transform: translate(-50%, 0) scale(1.05); opacity: 1; }
@@ -148,6 +155,6 @@ h4 {
 }
 .yz-glow { animation: yzGlow 1.6s ease-in-out infinite; }
 @media (prefers-reduced-motion: reduce) {
-  .yz-pop, .yz-roll, .yz-toast, .yz-glow, .dice-wiggle { animation: none; }
+  .yz-pop, .yz-roll, .yz-toast, .yz-glow, .dice-wiggle, .dice-rattle { animation: none; }
   .yz-toast { transform: translate(-50%, 0); }
 }

@@ -63,4 +63,17 @@ check(!canRoll({ ...r, used: 3 }), 'maks tre kast');
 check(!canRoll({ ...r, used: 1, held: [true, true, true, true, true] }), 'alle tatt bort');
 check(activeRoll({ ...r, used: 2 }, 'b:0').used === 0, 'nytt kast for ny tur');
 
+// Tvungen: terninger som passer runden beholdes automatisk
+const keep = (cats: typeof DYRE_CATEGORIES, name: string, d: number[]) =>
+  cats.find((c) => c.name === name)!.keep(d).map((k) => (k ? 1 : 0)).join('');
+check(keep(DYRE_CATEGORIES, 'Ku', [1, 3, 1, 6, 2]) === '10100', 'beholder kuer');
+check(keep(DYRE_CATEGORIES, '3 like', [4, 2, 4, 6, 2]) === '10100', 'beholder høyeste par mot 3 like');
+check(keep(DYRE_CATEGORIES, '2×2 like', [4, 2, 4, 6, 2]) === '11101', 'beholder begge par');
+check(keep(DYRE_CATEGORIES, '5 ulike', [4, 2, 4, 6, 2]) === '11010', 'én av hver');
+check(keep(DYRE_CATEGORIES, 'Hus', [5, 5, 5, 1, 1]) === '11111', 'hus beholdes helt');
+check(keep(DYRE_CATEGORIES, 'Yatzy', [1, 2, 3, 4, 5]) === '00000', 'ingen like');
+check(keep(YATZY_CATEGORIES, 'Seksere', [6, 6, 1, 6, 2]) === '11010', 'beholder seksere');
+check(keep(YATZY_CATEGORIES, 'Liten straight', [1, 2, 2, 5, 6]) === '11010', 'straight-terninger');
+check(keep(YATZY_CATEGORIES, 'Sjanse', [1, 4, 6, 3, 5]) === '01101', 'høye til sjanse');
+
 console.log('Alle Dyreyatzy-tester bestått.');
